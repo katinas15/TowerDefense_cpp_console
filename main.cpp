@@ -9,7 +9,7 @@ int main()
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	HWND console = GetConsoleWindow();
-	RECT r = { 100,100,	1000,1000 };
+	RECT r = { 0,0,	500,500 };
 	GetWindowRect(console, &r); //stores the console's current dimensions
 	MoveWindow(console, r.top, r.left, r.bottom - r.top, r.right - r.left, TRUE);
 
@@ -27,8 +27,8 @@ int main()
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
 	cfi.nFont = 0;
-	cfi.dwFontSize.X = 2;                   // Width of each character in the font
-	cfi.dwFontSize.Y = 2;                  // Height
+	cfi.dwFontSize.X = 10;                   // Width of each character in the font
+	cfi.dwFontSize.Y = 10;                  // Height
 	cfi.FontFamily = FF_DONTCARE;
 	cfi.FontWeight = FW_NORMAL;
 	wcscpy_s(cfi.FaceName, L"Consolas"); // Choose your font
@@ -69,7 +69,6 @@ int main()
 					cout << " ";
 				}
 			}
-
 
 			break;
 
