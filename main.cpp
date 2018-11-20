@@ -28,11 +28,13 @@ int main()
 	//---------------------------------
 	//---------------------------------
 	//---------------------------------
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	/*HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	HWND console = GetConsoleWindow();
+	HDC hdc = GetDC(console);
 	RECT r = { 0,0,	500,500 };
 	GetWindowRect(console, &r); //stores the console's current dimensions
 	MoveWindow(console, r.top, r.left, r.bottom - r.top, r.right - r.left, TRUE);
+	*/
 
 	HANDLE hout = GetStdHandle(STD_OUTPUT_HANDLE);
 	HANDLE hin = GetStdHandle(STD_INPUT_HANDLE);
@@ -44,16 +46,16 @@ int main()
 	SetConsoleCursorInfo(hout, &cci);
 	SetConsoleMode(hin, ENABLE_PROCESSED_INPUT | ENABLE_MOUSE_INPUT);
 
-	CONSOLE_FONT_INFOEX cfi;
-	cfi.cbSize = sizeof(cfi);
-	cfi.nFont = 0;
-	cfi.dwFontSize.X = 10;                   // Width of each character in the font
-	cfi.dwFontSize.Y = 10;                  // Height
-	cfi.FontFamily = FF_DONTCARE;
-	cfi.FontWeight = FW_NORMAL;
-	wcscpy_s(cfi.FaceName, L"Consolas"); // Choose your font
-	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
-	SetConsoleTextAttribute(hConsole, 196);
+	/*	CONSOLE_FONT_INFOEX cfi;
+		cfi.cbSize = sizeof(cfi);
+		cfi.nFont = 0;
+		cfi.dwFontSize.X = 10;                   // Width of each character in the font
+		cfi.dwFontSize.Y = 10;                  // Height
+		cfi.FontFamily = FF_DONTCARE;
+		cfi.FontWeight = FW_NORMAL;
+		wcscpy_s(cfi.FaceName, L"Consolas"); // Choose your font
+		SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
+		SetConsoleTextAttribute(hConsole, 196);*/
 	clearscreen();
 	//initialize perkelti i kita faila
 	//---------------------------------
@@ -62,98 +64,107 @@ int main()
 	//---------------------------------
 	//---------------------------------
 
-	/*int grid[100];
-	for (int i = 0; i < 500; i+=5) {
-		for (int j = 0; j < 500; j+=5) {
-			grid[i] = j;
-		}
-	}*/
+		//Get a console handle
+	HWND myconsole = GetConsoleWindow();
+	//Get a handle to device context
+	HDC mydc = GetDC(myconsole);
 
-	COORD coord;
-	coord.X = 0;
-	coord.Y = 0;
-	int x = coord.X;
-	int y = coord.Y;
+	ReadConsoleInput(hin, &InputRecord, 1, &Events);
+	//COORD coord;
+	COLORREF COLOR = RGB(255, 255, 255);
+	POINT p;
+	GetCursorPos(&p);
+	int x = p.x;
+	int y = p.y;
 	while (1) {
-		ReadConsoleInput(hin, &InputRecord, 1, &Events);
+		GetCursorPos(&p);
 		switch (InputRecord.EventType) {
 		case MOUSE_EVENT: // mouse input 
 
+			//eina i kaire
 			if (x > InputRecord.Event.MouseEvent.dwMousePosition.X) {
-				SetConsoleTextAttribute(hConsole, 15);
-				int j = x - InputRecord.Event.MouseEvent.dwMousePosition.X;
-				coord.X = x + 1;
-				for (int i = -2; i < 2; i++) {
-					coord.Y = y + i;
-					SetConsoleCursorPosition(hout, coord);
-					cout << " ";
+				COLOR = RGB(0, 0, 0);
+				for (int j = x - InputRecord.Event.MouseEvent.dwMousePosition.X + 2; j >= 0; j--) {
+					p.x = x + j;
+					for (int i = -50; i < 50; i++) {
+						p.y = y + i;
+						SetPixel(mydc, p.x, p.y, COLOR);
+					}
+				}
+
+
+			}
+
+			//eina i desine
+			if (x < InputRecord.Event.MouseEvent.dwMousePosition.X) {
+				COLOR = RGB(0, 0, 0);
+				for (int j = -1 * (InputRecord.Event.MouseEvent.dwMousePosition.X - x) - 2; j <= 0; j++) {
+					p.x = x + j;
+					for (int i = -50; i < 50; i++) {
+						p.y = y + i;
+						SetPixel(mydc, p.x, p.y, COLOR);
+					}
 				}
 			}
 
-			else if (x < InputRecord.Event.MouseEvent.dwMousePosition.X) {
-				SetConsoleTextAttribute(hConsole, 15);
-				coord.X = x - 2;
-				for (int i = -2; i < 2; i++) {
-					coord.Y = y + i;
-					SetConsoleCursorPosition(hout, coord);
-					cout << " ";
+			//eina aukstyn
+			if (y > InputRecord.Event.MouseEvent.dwMousePosition.Y) {
+				COLOR = RGB(0, 0, 0);
+				for (int j = y - InputRecord.Event.MouseEvent.dwMousePosition.Y + 2; j >= 0; j--) {
+					p.y = y + j;
+					for (int i = -50; i < 50; i++) {
+						p.x = x + i;
+						SetPixel(mydc, p.x, p.y, COLOR);
+					}
 				}
 			}
 
-			else if (y > InputRecord.Event.MouseEvent.dwMousePosition.Y) {
-				SetConsoleTextAttribute(hConsole, 15);
-				coord.Y = y + 1;
-				for (int i = -2; i < 2; i++) {
-					coord.X = x + i;
-					SetConsoleCursorPosition(hout, coord);
-					cout << " ";
+			//eina zemyn
+			if (y < InputRecord.Event.MouseEvent.dwMousePosition.Y) {
+				COLOR = RGB(0, 0, 0);
+				for (int j = -1 * (InputRecord.Event.MouseEvent.dwMousePosition.Y - y) - 2; j <= 0; j++) {
+					p.y = y + j;
+					for (int i = -50; i < 50; i++) {
+						p.x = x + i;
+						SetPixel(mydc, p.x, p.y, COLOR);
+					}
 				}
 			}
 
-			else if (y < InputRecord.Event.MouseEvent.dwMousePosition.Y) {
-				SetConsoleTextAttribute(hConsole, 15);
-				coord.Y = y - 2;
+			/*	SetConsoleTextAttribute(hConsole, 15);
 				for (int i = -2; i < 2; i++) {
-					coord.X = x + i;
-					SetConsoleCursorPosition(hout, coord);
-					cout << " ";
-				}
-			}
-		/*	SetConsoleTextAttribute(hConsole, 15);
-			for (int i = -2; i < 2; i++) {
-				for (int j = -2; j < 2; j++) {
-					coord.X = x + i;
-					coord.Y = y + j;
-					SetConsoleCursorPosition(hout, coord);
-					cout << " ";
-				}
-			}*/
+					for (int j = -2; j < 2; j++) {
+						p.x = x + i;
+						p.y = y + j;
+						SetConsoleCursorPosition(hout, coord);
+						cout << " ";
+					}
+				}*/
 
-			//0000000000000000
-			//0000000000000000
-			//000000000YYYX000
-			//0000000000000000
-			//0000000000000000
+				//0000000000000000
+				//0000000000000000
+				//000000000YYYX000
+				//0000000000000000
+				//0000000000000000
 
 			x = InputRecord.Event.MouseEvent.dwMousePosition.X;
 			y = InputRecord.Event.MouseEvent.dwMousePosition.Y;
-			SetConsoleTextAttribute(hConsole, 196);
-			for (int i = -2; i < 2; i++) {
-				for (int j = -2; j < 2; j++) {
-					coord.X = x + i;
-					coord.Y = y + j;
-					SetConsoleCursorPosition(hout, coord);
-					cout << " ";
+			COLOR = RGB(255, 255, 255);
+			for (int i = -10; i < 10; i++) {
+				for (int j = -10; j < 10; j++) {
+					p.x = x + i;
+					p.y = y + j;
+					SetPixel(mydc, p.x, p.y, COLOR);
 				}
 			}
 
-			break;
 
+			break;
+			 
 
 		}
 	}
 
-	FlushConsoleInputBuffer(hin);
 }
 
 
