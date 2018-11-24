@@ -205,7 +205,7 @@ namespace lib {
 		MoveWindow(console, r.left, r.top, x, y, TRUE);
 	}
 
-	void goFullscreen(){	//nustatomas fullscreen konsoles dydis
+	void goFullscreen() {	//nustatomas fullscreen konsoles dydis
 		SetConsoleDisplayMode(hConsole, CONSOLE_FULLSCREEN_MODE, NULL);
 	}
 
@@ -250,7 +250,7 @@ namespace lib {
 		cci.dwSize = 25;
 		cci.bVisible = visibility;
 		SetConsoleCursorInfo(hout, &cci);
-		SetConsoleMode(hin, ENABLE_PROCESSED_INPUT | ENABLE_MOUSE_INPUT); 
+		SetConsoleMode(hin, ENABLE_PROCESSED_INPUT | ENABLE_MOUSE_INPUT);
 	}
 
 	void setFontSize(int x, int y) {	//teksto fonto dydis
@@ -351,7 +351,7 @@ public:
 		int tempy = y;
 
 		fill(color);
-		
+
 		char v, b, vk, vd, ak, ad;
 		if (borderType == 1) {//viengubas krastas
 			v = char(196);
@@ -567,7 +567,7 @@ struct clickableObject {	//nurodoma kokioje pozicijoje galima paspasti objekta i
 	function<void()> funkcija;
 };
 
-class menu : public table{
+class menu : public table {
 
 public:
 
@@ -579,12 +579,12 @@ public:
 		object = new clickableObject[rows];	//nustatomos meniu lenteliu pasirinkimai, kad juos butu galima paspasti su mouse ir ivyktu funkcija
 		for (int i = 0; i < rows; i++) {
 			object[i].topLeftX = x;
-			object[i].topLeftY = y + height*i ;
+			object[i].topLeftY = y + height * i;
 			object[i].bottomRightX = x + width;
-			object[i].bottomRightY = y + height*(i+1);
+			object[i].bottomRightY = y + height * (i + 1);
 		}
 
-		
+
 		int tempy = y;
 		fill(color);
 
@@ -661,10 +661,10 @@ public:
 		for (int r = 0; r < rows; r++) {	//tikrinama ant kurio lango uzvesta
 			COORD temp = lib::getMousePosition();	//kai hover pasikeicia spalva
 			if (temp.X > object[r].topLeftX && temp.Y > object[r].topLeftY && object[r].bottomRightX > temp.X && object[r].bottomRightY > temp.Y) {
-				lib::setColor(16*15);	//invert !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				lib::setColor(16 * 15);	//invert !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				//invert !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				//invert !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-				
+
 				for (int i = 1; i < height; i++) {//pakeiciama spalva/ hover state
 					lib::setCursorPosition(object[r].topLeftX + 1, object[r].topLeftY + i);
 					for (int j = 1; j < width; j++) {
@@ -712,6 +712,36 @@ public:
 
 };
 
+class variableText {
+private:
+	short color;
+	double data;
+	string message;
+	COORD coord;
+	bool position;
+public:
+	void setCoord(int x1, int y1) { coord.X = x1; coord.Y = y1; }
+	void Message(string msg) { message = msg; }
+	void setColor(short col) { color = col; }
+	void setVariable(double dat) { data = dat; }
+	void setPosition(bool pos) { position = pos; }
+	void create() { //if position == true isveda pirmiau teksta
+		lib::setColor(color);
+		lib::setCursorPosition(coord.X, coord.Y);
+		if(position) cout << message << data;
+		else cout << data << message;
+	}
+	//set leidzia viska iskarto padaryti
+	void set(int x1,int y1, string msg, short col, double dat, bool pos){
+		setCoord(x1, y1);
+		Message(msg);
+		setColor(col);
+		setVariable(dat);
+		setPosition(pos);
+		create();
+	}
+};
+
 int main()
 {
 	//lib::clearscreen(9 + 10 * 16);	//istrina spalva ir nuspalvina ekrana i nurodyta spalva
@@ -723,7 +753,7 @@ int main()
 	lib::setConsoleResolution(1280, 720); // set resolution
 //	lib::setCursorPosition(a.X,a.Y);
 	lib::setCursorVisibility(false);
-	
+
 
 	/*----------------------------------
 	-------------------------------------
@@ -764,24 +794,25 @@ int main()
 	c.text[2] = "options";
 	c.set(60, 20, 20, 2, 1 + 16 * 15, 3, 1);//x,y,width,height,color,rows,bordertype
 
-
 	//lib::goFullscreen();	//fullscreen
-	
-	
+
+
 	/*clickableObject A[100];
 	A[0].funkcija = bind(&lib::printText,50,10,"cat",15);	//kad ivesti parametra reikia bind
 	A[0].funkcija();
 	cin.get();*/
-	lib::setCursorPosition(10, 50);
-	lib::fileTypeInFolder("C:/", "bmp");
+	///lib::setCursorPosition(10, 50);
+	///lib::fileTypeInFolder("C:/", "bmp");
 
-	lib::printBMP("nib.bmp", 300, 300);
+	///lib::printBMP("nib.bmp", 300, 300);
+	variableText d;
+	d.set(0, 0, "hp ", 196, 10, true);
 	b.object[0].funkcija = bind(&lib::printText, 50, 10, "cat", 15);	//objecktui priskiriama funkcija print text
 	b.object[1].funkcija = bind(&lib::printText, 60, 20, "gameover u ded", 15);
 	while (1) {
-		if(lib::mouseEvent()) b.check();
+		if (lib::mouseEvent()) b.check();
 	}
-	
+	return 0;
 }
 
 
