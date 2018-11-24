@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <vector>
+#include <filesystem>
 #pragma warning(disable:4996)
 using namespace std;
 
@@ -150,12 +151,14 @@ namespace lib {
 	CONSOLE_CURSOR_INFO cci;
 	CONSOLE_FONT_INFOEX cfi;
 	HDC hdc = GetDC(console);
+	int globalColor;
 
 	void clearscreen(int color) {
 		COORD coordScreen = { 0, 0 };
 		DWORD cCharsWritten;
 		DWORD dwConSize;
 		CONSOLE_SCREEN_BUFFER_INFO csbi;
+		globalColor = color;
 		SetConsoleTextAttribute(hConsole, color);
 		GetConsoleScreenBufferInfo(hConsole, &csbi);
 		dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
@@ -259,10 +262,10 @@ namespace lib {
 	}
 
 	void printPixel(int x, int y, COLORREF color) {
-		SetPixel(hdc, x, y, color);
+		SetPixel(hdc, x, y, color);	//nustato pixeli konsoleje
 	}
 
-	void printBMP(const char* filename, int x, int y) {
+	void printBMP(const char* filename, int x, int y) {//isveda bmp nuotrauka i konsole
 		//https://stackoverflow.com/questions/9296059/read-pixel-value-in-bmp-file
 		// read BMP file
 		FILE* f = fopen(filename, "rb");
@@ -281,10 +284,10 @@ namespace lib {
 		unsigned char* data = new unsigned char[row_padded];
 		unsigned char tmp;
 
-		int tempx = x, tempy = y;
+		int tempy = y + height; // reikia tempy-- nes kitaip apversta isveda
 		for (int i = 0; i < height; i++)
 		{
-			tempx = x;
+			int tempx = x;
 			fread(data, sizeof(unsigned char), row_padded, f);
 			for (int j = 0; j < width * 3; j += 3)
 			{
@@ -292,54 +295,153 @@ namespace lib {
 				tmp = data[j];
 				data[j] = data[j + 2];
 				data[j + 2] = tmp;
-				printPixel(tempx, tempy, RGB((int)data[j], (int)data[j + 1], (int)data[j + 2]));
-				tempx++;
-			}
-			tempy++;
-		}
-		fclose(f);
-
-	/*	int tempx = x, tempy = y;
-		for (int i = 0; i < height; i++)
-		{
-			tempx = x;
-			for (int j = 0; j < width*3; j+=3)
-			{
 				// Now data should contain the (R, G, B) values of the pixels.
 				//The color of pixel (i, j) is stored at data[3 * (i * width + j)],
 				//data[3 * (i * width + j) + 1] and data[3 * (i * width + j) + 2].
-				//cout << "R: " << (int)data[j] << " G: " << (int)data[j + 1] << " B: " << (int)data[j + 2] << endl;
 				printPixel(tempx, tempy, RGB((int)data[j], (int)data[j + 1], (int)data[j + 2]));
 				tempx++;
 			}
-			tempy++;
-		}*/
-
-		
-		
+			tempy--;
+		}
+		fclose(f);
 	}
 
+	vector<string> fileTypeInFolder(string folder, string fileType)
+	{
+		//https://stackoverflow.com/questions/612097/how-can-i-get-the-list-of-files-in-a-directory-using-c-or-c
+		string path = folder;
+		vector<string> names;
+		for (const auto & p : experimental::filesystem::directory_iterator(path)) {
+			//names.push_back(p);	//reikia kazkaip sutalpinti i vector ir filetype nustatyti
+			cout << p;
+		}
+
+		return names;
+	}
 };
 
-class table {	//lenteles klase
-private:
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-public:
 
+
+class langas {	//uzspalvinama pasirinkta vieta
+public:
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	int x;
 	int y;
 	int width;
 	int height;
-	int rows;
 	int color;
-	string text[10000];
 	int borderType;
 
-	void create() {	//sukuriama lentele
-		remove();
+	void fill(int color) {
 		lib::setColor(color);
 		int tempy = y;
 
+		//uzspalvinama table vieta
+		lib::setCursorPosition(x, tempy);
+		for (int i = 0; i <= height; i++) {
+			lib::setCursorPosition(x, tempy + i);
+			for (int j = 0; j <= width; j++) {
+				cout << " ";
+			}
+		}
+	}
+
+	void create() {
+		remove();
+		int tempy = y;
+
+		fill(color);
+		
+		char v, b, vk, vd, ak, ad;
+		if (borderType == 1) {//viengubas krastas
+			v = char(196);
+			b = char(179);
+			vk = char(218);
+			vd = char(191);
+			ak = char(192);
+			ad = char(217);
+		}
+		else if (borderType == 2) {//dvigubas krastas
+			v = char(205);
+			b = char(186);
+			vk = char(201);
+			vd = char(187);
+			ak = char(200);
+			ad = char(188);
+		}
+
+		if (borderType != 0) { // jei krastu nera toliau vnieko nereikia daryti
+			lib::setCursorPosition(x, y);
+			for (int i = 0; i <= width; i++) {	//virsus
+				cout << v;
+			}
+
+			tempy = y;
+			lib::setCursorPosition(x, tempy + height);
+			for (int i = 0; i < width; i++) {	//apacia
+				cout << v;
+			}
+
+			for (int i = tempy; i < tempy + height; i++) {	//kaire
+				lib::setCursorPosition(x, i);
+				cout << b;
+			}
+
+			for (int i = tempy; i < tempy + height; i++) {	//desine
+				lib::setCursorPosition(x + width, i);
+				cout << b;
+			}
+
+			tempy += height;
+
+			//kampai
+			lib::setCursorPosition(x, y);
+			cout << vk;
+			lib::setCursorPosition(x + width, y);
+			cout << vd;
+			lib::setCursorPosition(x, y + height);
+			cout << ak;
+			lib::setCursorPosition(x + width, y + height);
+			cout << ad;
+		}
+
+	}
+
+	void remove() {
+		lib::setColor(lib::globalColor);
+		int tempy = y;
+
+		//uzspalvinama table vieta
+		lib::setCursorPosition(x, tempy);
+		for (int i = 0; i <= height; i++) {
+			lib::setCursorPosition(x, tempy + i);
+			for (int j = 0; j <= width; j++) {
+				cout << " ";
+			}
+		}
+	}
+
+	void set(int sx, int sy, int swidth, int sheight, int scolor, int sborderType) {
+		/*istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais*/
+		remove();
+		x = sx;
+		y = sy;
+		width = swidth;
+		height = sheight;
+		color = scolor;
+		borderType = sborderType;
+		create();
+	}
+};
+
+class table : public langas {
+public:
+	int rows;
+	string text[10000];
+
+	void fill(int color) {
+		lib::setColor(color);
+		int tempy = y;
 		//uzspalvinama table vieta/ uzprintinami tusti langeliai kur bus table
 		for (int r = 0; r < rows; r++) {
 			lib::setCursorPosition(x, tempy);
@@ -351,6 +453,12 @@ public:
 			}
 			tempy += height;
 		}
+	}
+
+	void create() {	//sukuriama lentele
+		remove();
+		int tempy = y;
+		fill(color);
 
 		char v, b, vk, vd, ak, ad;
 		if (borderType == 0) {	//jei krastu nera tiesiog isvedamas tesktas
@@ -421,15 +529,8 @@ public:
 		}
 	}
 
-	void remove() {	//lentele istrinama !!!!!!!!!!!!!!!!!!!!reikia fix del spalvos
-		//lentele istrinama !!!!!!!!!!!!!!!!!!!!reikia fix del spalvos
-		//lentele istrinama !!!!!!!!!!!!!!!!!!!!reikia fix del spalvos
-		//lentele istrinama !!!!!!!!!!!!!!!!!!!!reikia fix del spalvos
-		//lentele istrinama !!!!!!!!!!!!!!!!!!!!reikia fix del spalvos
-		//lentele istrinama !!!!!!!!!!!!!!!!!!!!reikia fix del spalvos
-		//lentele istrinama !!!!!!!!!!!!!!!!!!!!reikia fix del spalvos
-		//lentele istrinama !!!!!!!!!!!!!!!!!!!!reikia fix del spalvos
-		lib::setColor(15);
+	void remove() {
+		lib::setColor(lib::globalColor);
 		int tempy = y;
 
 		//uzspalvinama table vieta
@@ -445,8 +546,8 @@ public:
 		}
 	}
 
-	void set(int sx, int sy, int swidth, int sheight, int scolor,int srows, int sborderType) {
-		/*istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais*/
+	void set(int sx, int sy, int swidth, int sheight, int scolor, int srows, int sborderType) {
+		//istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais
 		remove();
 		x = sx;
 		y = sy;
@@ -459,114 +560,6 @@ public:
 	}
 };
 
-class langas {	//uzspalvinama pasirinkta vieta
-private:
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-
-public:
-	int x;
-	int y;
-	int width;
-	int height;
-	int color;
-	int borderType;
-
-	void create() {
-		remove();
-		lib::setColor(color);
-		int tempy = y;
-
-		//uzspalvinama table vieta
-		lib::setCursorPosition(x, tempy);
-		for (int i = 0; i <= height; i++) {
-			lib::setCursorPosition(x, tempy + i);
-			for (int j = 0; j <= width; j++) {
-				cout << " ";
-			}
-		}
-		
-		char v, b, vk, vd, ak, ad;
-		if (borderType == 1) {//viengubas krastas
-			v = char(196);
-			b = char(179);
-			vk = char(218);
-			vd = char(191);
-			ak = char(192);
-			ad = char(217);
-		}
-		else if (borderType == 2) {//dvigubas krastas
-			v = char(205);
-			b = char(186);
-			vk = char(201);
-			vd = char(187);
-			ak = char(200);
-			ad = char(188);
-		}
-
-		if (borderType != 0) { // jei krastu nera toliau vnieko nereikia daryti
-			lib::setCursorPosition(x, y);
-			for (int i = 0; i <= width; i++) {	//virsus
-				cout << v;
-			}
-
-			tempy = y;
-			lib::setCursorPosition(x, tempy + height);
-			for (int i = 0; i < width; i++) {	//apacia
-				cout << v;
-			}
-
-			for (int i = tempy; i < tempy + height; i++) {	//kaire
-				lib::setCursorPosition(x, i);
-				cout << b;
-			}
-
-			for (int i = tempy; i < tempy + height; i++) {	//desine
-				lib::setCursorPosition(x + width, i);
-				cout << b;
-			}
-
-			tempy += height;
-
-			//kampai
-			lib::setCursorPosition(x, y);
-			cout << vk;
-			lib::setCursorPosition(x + width, y);
-			cout << vd;
-			lib::setCursorPosition(x, y + height);
-			cout << ak;
-			lib::setCursorPosition(x + width, y + height);
-			cout << ad;
-		}
-
-	}
-
-	void remove() {
-		lib::setColor(15);
-		int tempy = y;
-
-		//uzspalvinama table vieta
-		lib::setCursorPosition(x, tempy);
-		for (int i = 0; i <= height; i++) {
-			lib::setCursorPosition(x, tempy + i);
-			for (int j = 0; j <= width; j++) {
-				cout << " ";
-			}
-		}
-	}
-
-	void set(int sx, int sy, int swidth, int sheight, int scolor, int sborderType) {
-		/*istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais*/
-		remove();
-		x = sx;
-		y = sy;
-		width = swidth;
-		height = sheight;
-		color = scolor;
-		borderType = sborderType;
-		create();
-	}
-};
-
 struct clickableObject {	//nurodoma kokioje pozicijoje galima paspasti objekta ir kokia funkcija jis atliks
 	int topLeftX, topLeftY;
 	int bottomRightX, bottomRightY;
@@ -574,18 +567,10 @@ struct clickableObject {	//nurodoma kokioje pozicijoje galima paspasti objekta i
 	function<void()> funkcija;
 };
 
-class menu {
-private:
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+class menu : public table{
+
 public:
-	int x;
-	int y;
-	int width;
-	int height;
-	int rows;
-	int color;
-	string text[10000];
-	int borderType;
+
 	clickableObject * object;
 
 	void create() {
@@ -599,20 +584,9 @@ public:
 			object[i].bottomRightY = y + height*(i+1);
 		}
 
-		lib::setColor(color);
+		
 		int tempy = y;
-
-		//uzspalvinama table vieta
-		for (int r = 0; r < rows; r++) {
-			lib::setCursorPosition(x, tempy);
-			for (int i = 0; i <= height; i++) {
-				lib::setCursorPosition(x, tempy + i);
-				for (int j = 0; j <= width; j++) {
-					cout << " ";
-				}
-			}
-			tempy += height;
-		}
+		fill(color);
 
 		char v, b, vk, vd, ak, ad;
 		if (borderType == 0) {//jei krastu nera
@@ -722,25 +696,8 @@ public:
 		}
 	}
 
-	void remove() {
-		lib::setColor(15);
-		int tempy = y;
-
-		//uzspalvinama table vieta
-		for (int r = 0; r < rows; r++) {
-			lib::setCursorPosition(x, tempy);
-			for (int i = 0; i <= height; i++) {
-				lib::setCursorPosition(x, tempy + i);
-				for (int j = 0; j <= width; j++) {
-					cout << " ";
-				}
-			}
-			tempy += height;
-		}
-	}
-
 	void set(int sx, int sy, int swidth, int sheight, int scolor, int srows, int sborderType) {
-		/*istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais*/
+		//istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais
 		remove();
 		x = sx;
 		y = sy;
@@ -751,10 +708,9 @@ public:
 		borderType = sborderType;
 		create();
 	}
+
+
 };
-
-
-
 
 int main()
 {
@@ -762,9 +718,9 @@ int main()
 	lib::remove_scrollbar(); //nuima is console scroll bar	
 	lib::setFontSize(10, 20);	//fonto dydis
 	//lib::goFullscreen();	//fullscreen
-	lib::printText(30, 20, "nibba", 2+16*4); //x,y,string,color
+	//lib::printText(30, 20, "nibba", 2+16*4); //x,y,string,color
 	//COORD a = lib::getMousePosition();	//get mouse position
-	//lib::setConsoleResolution(1280, 720); // set resolution
+	lib::setConsoleResolution(1280, 720); // set resolution
 //	lib::setCursorPosition(a.X,a.Y);
 	lib::setCursorVisibility(false);
 	
@@ -782,7 +738,7 @@ int main()
 	a.borderType = 2;
 	a.create();
 	//a.remove();
-	a.set(25, 20, 10, 10, 18, 2);	//arba galima sukurti su set
+	a.set(10, 12, 10, 10, 18, 2);	//arba galima sukurti su set
 
 	menu b;	//menu,   x,y,width,height,color,rows,text,bordertype, object
 	b.x = 0;
@@ -806,7 +762,7 @@ int main()
 	c.text[0] = "start";
 	c.text[1] = "quit game";
 	c.text[2] = "options";
-	c.set(60, 10, 20, 2, 1 + 16 * 15, 3, 1);//x,y,width,height,color,rows,bordertype
+	c.set(60, 20, 20, 2, 1 + 16 * 15, 3, 1);//x,y,width,height,color,rows,bordertype
 
 
 	//lib::goFullscreen();	//fullscreen
@@ -816,6 +772,9 @@ int main()
 	A[0].funkcija = bind(&lib::printText,50,10,"cat",15);	//kad ivesti parametra reikia bind
 	A[0].funkcija();
 	cin.get();*/
+	lib::setCursorPosition(10, 50);
+	lib::fileTypeInFolder("C:/", "bmp");
+
 	lib::printBMP("nib.bmp", 300, 300);
 	b.object[0].funkcija = bind(&lib::printText, 50, 10, "cat", 15);	//objecktui priskiriama funkcija print text
 	b.object[1].funkcija = bind(&lib::printText, 60, 20, "gameover u ded", 15);
@@ -837,7 +796,7 @@ clickable table - COMPLETE
 
 kartais reikie keliu click kad veiktu object
 color pallet
-import bmp image
+import bmp image -- COMPLETE
 right click - open/create menu
 menu
 
