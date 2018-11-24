@@ -5,138 +5,9 @@
 #include <functional>
 #include <vector>
 #include <filesystem>
+#include <fstream>
 #pragma warning(disable:4996)
 using namespace std;
-
-
-
-void cursor() {
-	//initialize perkelti i kita faila
-//---------------------------------
-//---------------------------------
-//---------------------------------
-//---------------------------------
-//---------------------------------
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	HWND console = GetConsoleWindow();
-	RECT r = { 0,0,	500,500 };
-	GetWindowRect(console, &r); //stores the console's current dimensions
-	MoveWindow(console, r.top, r.left, r.bottom - r.top, r.right - r.left, TRUE);
-
-	HANDLE hout = GetStdHandle(STD_OUTPUT_HANDLE);
-	HANDLE hin = GetStdHandle(STD_INPUT_HANDLE);
-	INPUT_RECORD InputRecord;
-	DWORD Events;
-	CONSOLE_CURSOR_INFO cci;
-	cci.dwSize = 25;
-	cci.bVisible = FALSE;
-	SetConsoleCursorInfo(hout, &cci);
-	SetConsoleMode(hin, ENABLE_PROCESSED_INPUT | ENABLE_MOUSE_INPUT);
-
-	CONSOLE_FONT_INFOEX cfi;
-	cfi.cbSize = sizeof(cfi);
-	cfi.nFont = 0;
-	cfi.dwFontSize.X = 10;                   // Width of each character in the font
-	cfi.dwFontSize.Y = 10;                  // Height
-	cfi.FontFamily = FF_DONTCARE;
-	cfi.FontWeight = FW_NORMAL;
-	wcscpy_s(cfi.FaceName, L"Consolas"); // Choose your font
-	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
-	SetConsoleTextAttribute(hConsole, 196);
-	//clearscreen();
-	//initialize perkelti i kita faila
-	//---------------------------------
-	//---------------------------------
-	//---------------------------------
-	//---------------------------------
-	//---------------------------------
-
-
-	COORD coord;
-	coord.X = 0;
-	coord.Y = 0;
-	int x = coord.X;
-	int y = coord.Y;
-	while (1) {
-		ReadConsoleInput(hin, &InputRecord, 1, &Events);
-		switch (InputRecord.EventType) {
-		case MOUSE_EVENT: // mouse input 
-
-			if (x > InputRecord.Event.MouseEvent.dwMousePosition.X) {
-				SetConsoleTextAttribute(hConsole, 15);
-				int j = x - InputRecord.Event.MouseEvent.dwMousePosition.X;
-				coord.X = x + 1;
-				for (int i = -2; i < 2; i++) {
-					coord.Y = y + i;
-					SetConsoleCursorPosition(hout, coord);
-					cout << " ";
-				}
-			}
-
-			else if (x < InputRecord.Event.MouseEvent.dwMousePosition.X) {
-				SetConsoleTextAttribute(hConsole, 15);
-				coord.X = x - 2;
-				for (int i = -2; i < 2; i++) {
-					coord.Y = y + i;
-					SetConsoleCursorPosition(hout, coord);
-					cout << " ";
-				}
-			}
-
-			else if (y > InputRecord.Event.MouseEvent.dwMousePosition.Y) {
-				SetConsoleTextAttribute(hConsole, 15);
-				coord.Y = y + 1;
-				for (int i = -2; i < 2; i++) {
-					coord.X = x + i;
-					SetConsoleCursorPosition(hout, coord);
-					cout << " ";
-				}
-			}
-
-			else if (y < InputRecord.Event.MouseEvent.dwMousePosition.Y) {
-				SetConsoleTextAttribute(hConsole, 15);
-				coord.Y = y - 2;
-				for (int i = -2; i < 2; i++) {
-					coord.X = x + i;
-					SetConsoleCursorPosition(hout, coord);
-					cout << " ";
-				}
-			}
-			/*	SetConsoleTextAttribute(hConsole, 15);
-				for (int i = -2; i < 2; i++) {
-					for (int j = -2; j < 2; j++) {
-						coord.X = x + i;
-						coord.Y = y + j;
-						SetConsoleCursorPosition(hout, coord);
-						cout << " ";
-					}
-				}*/
-
-				//0000000000000000
-				//0000000000000000
-				//000000000YYYX000
-				//0000000000000000
-				//0000000000000000
-
-			x = InputRecord.Event.MouseEvent.dwMousePosition.X;
-			y = InputRecord.Event.MouseEvent.dwMousePosition.Y;
-			SetConsoleTextAttribute(hConsole, 196);
-			for (int i = -2; i < 2; i++) {
-				for (int j = -2; j < 2; j++) {
-					coord.X = x + i;
-					coord.Y = y + j;
-					SetConsoleCursorPosition(hout, coord);
-					cout << " ";
-				}
-			}
-
-			break;
-
-
-		}
-	}
-	FlushConsoleInputBuffer(hin);
-}
 
 namespace lib {
 
@@ -145,15 +16,18 @@ namespace lib {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	HANDLE hin = GetStdHandle(STD_INPUT_HANDLE);
 	INPUT_RECORD InputRecord;
-	DWORD Events;
-	HWND console = GetConsoleWindow();
 	RECT r;
+	DWORD Events;
+	COORD cursor;
+	HWND console = GetConsoleWindow();
 	CONSOLE_CURSOR_INFO cci;
 	CONSOLE_FONT_INFOEX cfi;
 	HDC hdc = GetDC(console);
 	int globalColor;
+	int x = -100;
+	int y = -100;
 
-	void clearscreen(int color) {
+	void clearscreen(int color) {	//istrinamas ekranas ir nustatoma global color
 		COORD coordScreen = { 0, 0 };
 		DWORD cCharsWritten;
 		DWORD dwConSize;
@@ -170,14 +44,6 @@ namespace lib {
 
 	void setColor(int color) {	//nustatoma teskto spalva
 		SetConsoleTextAttribute(hConsole, color);
-	}
-
-	void printText(int x, int y, string text, int color) {	//isvedamas teksta i nurodyta pozicija, pasirinktos spalvos
-		SetConsoleTextAttribute(hConsole, color);
-		coord.X = x;
-		coord.Y = y;
-		SetConsoleCursorPosition(hout, coord);
-		cout << text;
 	}
 
 	void remove_scrollbar() //isjungiamas consoles scroll bar
@@ -227,13 +93,6 @@ namespace lib {
 		return false;
 	}
 
-	COORD mousePosition() {	//nustatoma mouse pozicija lange
-		ReadConsoleInput(hin, &InputRecord, 1, &Events);
-		coord.X = InputRecord.Event.MouseEvent.dwMousePosition.X;
-		coord.Y = InputRecord.Event.MouseEvent.dwMousePosition.Y;
-		return coord;
-	}
-
 	bool mouseEvent() {	//nustatoma ar ivyko kazkoks mouse event, pvz.: sujudejo mouse arba paspaustas mouse mygtukas
 		ReadConsoleInput(hin, &InputRecord, 1, &Events);
 		if (InputRecord.EventType == MOUSE_EVENT)  return true;
@@ -265,7 +124,17 @@ namespace lib {
 		SetPixel(hdc, x, y, color);	//nustato pixeli konsoleje
 	}
 
-	void printBMP(const char* filename, int x, int y) {//isveda bmp nuotrauka i konsole
+	void printText(int x, int y, string text, int color) {	//isvedamas teksta i nurodyta pozicija, pasirinktos spalvos
+		setColor(color);
+		coord.X = x;
+		coord.Y = y;
+		setCursorPosition(x, y);
+		cout << text;
+	}
+
+	void printBMP(const char* filename, int x, int y) {
+
+		//isveda bmp nuotrauka i konsole
 		//https://stackoverflow.com/questions/9296059/read-pixel-value-in-bmp-file
 		// read BMP file
 		FILE* f = fopen(filename, "rb");
@@ -306,21 +175,93 @@ namespace lib {
 		fclose(f);
 	}
 
-	vector<string> fileTypeInFolder(string folder, string fileType)
+	vector<string> fileTypeInFolder(const string& folder, string fileType)
 	{
 		//https://stackoverflow.com/questions/612097/how-can-i-get-the-list-of-files-in-a-directory-using-c-or-c
 		string path = folder;
 		vector<string> names;
+		ofstream fr("temp.txt");	//nuskaitomi visi failu pavadinimai direktorijoje
 		for (const auto & p : experimental::filesystem::directory_iterator(path)) {
-			//names.push_back(p);	//reikia kazkaip sutalpinti i vector ir filetype nustatyti
-			cout << p;
+			fr << p << endl;
 		}
+		fr.close();
+		ifstream fd("temp.txt");
+		while (!fd.eof()) {//failu pavadinimai sudedami i vektoriu
+			string temp;
+			fd >> temp;
+			names.push_back(temp);
+		}
+		fd.close();
+		remove("temp.txt");
+
+
+		for (int i = 0; i < names.size(); i++) {	//paliekami tik filetype nurodyti failai
+			string temp;
+			if (names[i].length() > fileType.length()) {
+				temp = names[i].substr(names[i].length() - fileType.length(), fileType.length());
+			}
+
+			if (temp != fileType || names[i].length() < fileType.length()) {
+				names.erase(names.begin() + i);
+				i--;
+			}
+		}
+
+		//for (int i = 0; i < names.size(); i++) { cout << names[i] << endl; }
 
 		return names;
 	}
+
+	void cursorDraw() {
+		cursor = getMousePosition();
+		setColor(globalColor);//istrina anksciau buvusi cursor
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 1; j++) {
+				setCursorPosition(x + i, y + j);
+				cout << " ";
+			}
+		}
+
+		/*if (x > cursor.X) {	//kaire
+			int j = x - cursor.X;
+			for (int i = -2; i < 2; i++) {
+				setCursorPosition(x + 1, y + i);
+				cout << " ";
+			}
+		}
+		else if (x < cursor.X) {	//desine
+			for (int i = -2; i < 2; i++) {
+				setCursorPosition(x - 2, y + i);
+				cout << " ";
+			}
+		}
+
+		else if (y > cursor.Y) {	//virsu
+			for (int i = -2; i < 2; i++) {
+				setCursorPosition(x + i, y + 1);
+				cout << " ";
+			}
+		}
+
+		else if (y < cursor.Y) {	//apacia
+			for (int i = -2; i < 2; i++) {
+				setCursorPosition(x + i, y - 2);
+				cout << " ";
+			}
+		}*/
+
+		x = cursor.X;//naujas cursor
+		y = cursor.Y;
+		setColor(196);
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 1; j++) {
+				setCursorPosition(x + i, y + j);
+				cout << " ";
+			}
+		}
+		FlushConsoleInputBuffer(hin);
+	}
 };
-
-
 
 class langas {	//uzspalvinama pasirinkta vieta
 public:
@@ -563,7 +504,6 @@ public:
 struct clickableObject {	//nurodoma kokioje pozicijoje galima paspasti objekta ir kokia funkcija jis atliks
 	int topLeftX, topLeftY;
 	int bottomRightX, bottomRightY;
-	string text = "";
 	function<void()> funkcija;
 };
 
@@ -658,12 +598,12 @@ public:
 	}
 
 	void check() {//tikrinama ar buvo paspausta ar pele uzvesta ant kazkurio is meniu lango
+
 		for (int r = 0; r < rows; r++) {	//tikrinama ant kurio lango uzvesta
 			COORD temp = lib::getMousePosition();	//kai hover pasikeicia spalva
 			if (temp.X > object[r].topLeftX && temp.Y > object[r].topLeftY && object[r].bottomRightX > temp.X && object[r].bottomRightY > temp.Y) {
-				lib::setColor(16 * 15);	//invert !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-				//invert !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-				//invert !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				int invertedColor = 255 - color;
+				lib::setColor(invertedColor);
 
 				for (int i = 1; i < height; i++) {//pakeiciama spalva/ hover state
 					lib::setCursorPosition(object[r].topLeftX + 1, object[r].topLeftY + i);
@@ -728,11 +668,11 @@ public:
 	void create() { //if position == true isveda pirmiau teksta
 		lib::setColor(color);
 		lib::setCursorPosition(coord.X, coord.Y);
-		if(position) cout << message << data;
+		if (position) cout << message << data;
 		else cout << data << message;
 	}
 	//set leidzia viska iskarto padaryti
-	void set(int x1,int y1, string msg, short col, double dat, bool pos){
+	void set(int x1, int y1, string msg, short col, double dat, bool pos) {
 		setCoord(x1, y1);
 		Message(msg);
 		setColor(col);
@@ -802,7 +742,8 @@ int main()
 	A[0].funkcija();
 	cin.get();*/
 	///lib::setCursorPosition(10, 50);
-	///lib::fileTypeInFolder("C:/", "bmp");
+	lib::fileTypeInFolder("C:/", "bmp");
+	//cout << a[0];
 
 	///lib::printBMP("nib.bmp", 300, 300);
 	variableText d;
@@ -810,7 +751,11 @@ int main()
 	b.object[0].funkcija = bind(&lib::printText, 50, 10, "cat", 15);	//objecktui priskiriama funkcija print text
 	b.object[1].funkcija = bind(&lib::printText, 60, 20, "gameover u ded", 15);
 	while (1) {
-		if (lib::mouseEvent()) b.check();
+
+		if (lib::mouseEvent()) {
+		//	lib::cursorDraw();
+			b.check();
+		}
 	}
 	return 0;
 }
