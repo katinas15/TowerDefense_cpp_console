@@ -84,3 +84,5 @@ int main()
 	}
 	return 0;
 }
+
+//Darba atliko Laimonas Janutėnas ir Gediminas Kailiūnas
