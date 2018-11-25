@@ -31,7 +31,7 @@ int main()
 	a.borderType = 2;
 
 	//lib::goFullscreen();	//fullscreen
-
+	lib::printText(0, 30, "Jei neveikia pele: 2-mouse ant consoles->Properties->Options->'uncheck' Quick Edit Mode", 15);
 	
 	menu b;	//menu,   x,y,width,height,color,rows,text,bordertype, object
 	b.text[0] = "MENU";
@@ -49,8 +49,8 @@ int main()
 	b.object[4].funkcija = bind(&lib::setConsoleResolution, 800, 600);
 	b.object[5].funkcija = bind(&lib::printText, 40,20,"Hello",196);
 
-
-	vector<string> files = lib::fileTypeInFolder("C:/Users/1/source/repos/katinas15/tower_defense_ga,nbjhkgme/pictures", "bmp");	//nustatyti kur yra visi pictures (ideta i project pictures papke)
+	//teisingas rasymo formatas C:/pictures ------------ pasviras bruksnelis "/" o ne "\"
+	vector<string> files = lib::fileTypeInFolder("I:/chrome/tower_defense_game-master/tower_defense_game-master/pictures", "bmp");	//nustatyti kur yra visi pictures (ideta i project pictures papke)
 	//table,   x,y,width,height,color,rows,text,bordertype
 	menu bmpFiles;
 	bmpFiles.x = 60;
