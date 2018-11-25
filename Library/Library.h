@@ -13,7 +13,7 @@ using namespace std;
 
 namespace lib {
 
-
+	void nothing();
 	void clearscreen(int);
 	void setColor(int);
 	void printText(int, int, string, int);
@@ -28,14 +28,14 @@ namespace lib {
 	void setCursorVisibility(bool);
 	void setFontSize(int, int);
 	void printPixel(int, int, COLORREF);
-	void printBMP(const char*, int, int);
+	void printBMP(string, int, int);
 	vector<string> fileTypeInFolder(const string&, string);
 	void cursorDraw();
 
 
 
 
-	
+
 };
 class langas {	//uzspalvinama pasirinkta vieta
 public:
