@@ -21,6 +21,12 @@ namespace lib {
 
 	void nothing() {}
 
+	string getPath()
+	{
+		char result[MAX_PATH];
+		return std::string(result, GetModuleFileName(NULL, result, MAX_PATH));
+	}
+
 	void clearscreen(int color) {	//istrinamas ekranas ir nustatoma global color
 		COORD coordScreen = { 0, 0 };
 		DWORD cCharsWritten;
