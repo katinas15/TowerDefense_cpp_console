@@ -12,7 +12,6 @@
 using namespace std;
 
 namespace lib {
-
 	void nothing();
 	void clearscreen(int);
 	void setColor(int);
@@ -31,32 +30,45 @@ namespace lib {
 	void printBMP(string, int, int);
 	vector<string> fileTypeInFolder(const string&, string);
 	void cursorDraw();
-
-
-
-
-
+	void errorMessage(string);
 };
 class langas {	//uzspalvinama pasirinkta vieta
-public:
+protected:
 	int x;
 	int y;
 	int width;
 	int height;
 	int color;
 	int borderType;
-
+public:
+	bool setXY(int, int);
+	bool setWidth(int);
+	bool setHeight(int);
+	bool setColor(int);
+	bool setBorder(int);
 	void fill(int);
 	void create();
 	void remove();
 	void set(int, int, int, int, int, int);
 };
 
-class table : public langas {
+class textField : public langas {
+private:
+	string text;
 public:
+	void setText(string);
+	void create();
+	void set(int, int, int, int, int, int, string);
+};
+
+class table : public langas {
+protected:
 	int rows;
 	string text[10000];
-
+public:
+	
+	bool setRows(int);
+	bool setText(int, string);
 	void fill(int color);
 	void create();
 	void remove();
@@ -70,12 +82,14 @@ struct clickableObject {	//nurodoma kokioje pozicijoje galima paspasti objekta i
 };
 
 class menu : public table {
-
-public:
+private:
 	clickableObject * object;
 
+public:
+	
 	void create();
 	void check();
+	void setFunction(int, function<void()>);
 	void set(int, int, int, int, int, int, int);
 };
 
