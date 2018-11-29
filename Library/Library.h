@@ -85,9 +85,7 @@ struct clickableObject {	//nurodoma kokioje pozicijoje galima paspasti objekta i
 class menu : public table {
 private:
 	clickableObject * object;
-
 public:
-	
 	void create();
 	void check();
 	void setFunction(int, function<void()>);
@@ -102,11 +100,11 @@ private:
 	COORD coord;
 	bool position;
 public:
-	void setCoord(int, int);
-	void Message(string);
-	void setColor(short);
+	bool setXY(int, int);
+	void setText(string);
+	bool setColor(short);
 	void setVariable(double);
-	void setPosition(bool);
+	void setSide(bool);
 	void create();
 	//set leidzia viska iskarto padaryti
 	void set(int, int, string, short, double, bool);
