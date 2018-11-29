@@ -13,6 +13,7 @@ using namespace std;
 
 namespace lib {
 	void nothing();
+	string getPath();
 	void clearscreen(int);
 	void setColor(int);
 	void printText(int, int, string, int);
