@@ -17,6 +17,8 @@ namespace lib {
 	int globalColor;
 	int x = -100;
 	int y = -100;
+	clickableObject * object;
+
 	void nothing() {}
 
 	void clearscreen(int color) {	//istrinamas ekranas ir nustatoma global color
@@ -36,6 +38,25 @@ namespace lib {
 
 	void setColor(int color) {	//nustatoma teskto spalva
 		SetConsoleTextAttribute(hConsole, color);
+		/*
+		COLOR CODES
+		0   BLACK
+		1   BLUE
+		2   GREEN
+		3   CYAN
+		4   RED
+		5   MAGENTA
+		6   BROWN
+		7   LIGHTGRAY
+		8   DARKGRAY
+		9   LIGHTBLUE
+		10  LIGHTGREEN
+		11  LIGHTCYAN
+		12  LIGHTRED
+		13  LIGHTMAGENTA
+		14  YELLOW
+		15  WHITE
+		*/
 	}
 
 	void remove_scrollbar() //isjungiamas consoles scroll bar
@@ -254,7 +275,76 @@ namespace lib {
 		}
 		FlushConsoleInputBuffer(hin);
 	}
+
+	void errorMessage(string text) {
+		printText(0, 0, text, 15 + 4 * 16);
+	}
 };
+
+bool langas::setXY(int a, int b)
+{
+	if (a < 0 || b < 0) {
+		lib::errorMessage("Failed to set XY");
+		x = 0; y = 0;
+		return false;
+	} else{
+		x = a; y = b;
+		return true;
+	}
+}
+
+bool langas::setWidth(int a)
+{
+	if (a < 0) {
+		lib::errorMessage("Failed to set Width");
+		width = 0;
+		return false;
+	}
+	else {
+		width = a;
+		return true;
+	}
+}
+
+bool langas::setHeight(int a)
+{
+	if (a < 0) {
+		lib::errorMessage("Failed to set height");
+		height = 0;
+		return false;
+	}
+	else {
+		height = a;
+		return true;
+	}
+}
+
+bool langas::setColor(int a)
+{
+	if (a < 0 || a > 255) {
+		lib::errorMessage("Failed to set color");
+		color = 0;
+		return false;
+	}
+	else {
+		color = a;
+		return true;
+	}
+}
+
+bool langas::setBorder(int a)
+
+{
+	if (a < 0 || a > 2) {
+		lib::errorMessage("Failed to set border");
+		borderType = 0;
+		return false;
+	}
+	else {
+		borderType = a;
+		return true;
+	}
+}
 
 void langas::fill(int color) {
 	lib::setColor(color);
@@ -359,6 +449,31 @@ void langas::set(int sx, int sy, int swidth, int sheight, int scolor, int sborde
 
 
 
+
+bool table::setRows(int a)
+{
+	if (rows < 0) {
+		lib::errorMessage("Failed to set rows");
+		rows = 0;
+		return false;
+	}
+	else {
+		rows = a;
+		return true;
+	}
+}
+
+bool table::setText(int index, string t)
+{
+	if (index < 0 || index > 10000) {
+		lib::errorMessage("Failed to set text");
+		return false;
+	}
+	else {
+		text[index] = t;
+		return true;
+	}
+}
 
 void table::fill(int color) {
 	lib::setColor(color);
@@ -480,7 +595,6 @@ void table::set(int sx, int sy, int swidth, int sheight, int scolor, int srows, 
 	create();
 }
 
-clickableObject * object;
 void menu::create() {
 	remove();
 
@@ -604,6 +718,11 @@ void menu::check() {//tikrinama ar buvo paspausta ar pele uzvesta ant kazkurio i
 	}
 }
 
+void menu::setFunction(int index, function<void()> f)
+{
+	object[index].funkcija = f;
+}
+
 void menu::set(int sx, int sy, int swidth, int sheight, int scolor, int srows, int sborderType) {
 	//istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais
 	remove();
@@ -639,5 +758,108 @@ void variableText::set(int x1, int y1, string msg, short col, double dat, bool p
 	setColor(col);
 	setVariable(dat);
 	setPosition(pos);
+	create();
+}
+
+void textField::setText(string txt)
+{
+	text = txt;
+}
+
+void textField::create()
+{
+	remove();
+	int tempy = y;
+
+	fill(color);
+
+	char v, b, vk, vd, ak, ad;
+	if (borderType == 1) {//viengubas krastas
+		v = char(196);
+		b = char(179);
+		vk = char(218);
+		vd = char(191);
+		ak = char(192);
+		ad = char(217);
+	}
+	else if (borderType == 2) {//dvigubas krastas
+		v = char(205);
+		b = char(186);
+		vk = char(201);
+		vd = char(187);
+		ak = char(200);
+		ad = char(188);
+	}
+
+	if (borderType != 0) { // jei krastu nera toliau vnieko nereikia daryti
+		lib::setCursorPosition(x, y);
+		for (int i = 0; i <= width; i++) {	//virsus
+			cout << v;
+		}
+
+		tempy = y;
+		lib::setCursorPosition(x, tempy + height);
+		for (int i = 0; i < width; i++) {	//apacia
+			cout << v;
+		}
+
+		for (int i = tempy; i < tempy + height; i++) {	//kaire
+			lib::setCursorPosition(x, i);
+			cout << b;
+		}
+
+		for (int i = tempy; i < tempy + height; i++) {	//desine
+			lib::setCursorPosition(x + width, i);
+			cout << b;
+		}
+
+		tempy += height;
+
+		//kampai
+		lib::setCursorPosition(x, y);
+		cout << vk;
+		lib::setCursorPosition(x + width, y);
+		cout << vd;
+		lib::setCursorPosition(x, y + height);
+		cout << ak;
+		lib::setCursorPosition(x + width, y + height);
+		cout << ad;
+	}
+
+	//tekstas suskaidomas i dalis ir sutalpinamas i teksto lauka
+	int k = 0;
+	for (int i = 0; i < height - 1; i ++)
+	{
+		lib::setCursorPosition(x + 1, y + i + 1);
+		for (int j = 0; j < width - 1; j++)
+		{
+			//if (text[i] == ' ') cout << " ";
+			if (text.length() < k) break;
+			cout << text[k];
+			if (j == width - 3) {	//la- labas
+									//bas
+				if (k + 2 < text.length()) {
+					if (text[k + 1] != ' ' && text[k + 2] != ' ') {
+						cout << "-";
+						j++;
+					}
+				}
+			}
+			k++;
+		}
+	}
+}
+
+void textField::set(int sx, int sy, int swidth, int sheight, int scolor, int sborderType, string txt)
+{
+	/*istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais*/
+	remove();
+	x = sx;
+	y = sy;
+	width = swidth;
+	height = sheight;
+	color = scolor;
+	borderType = sborderType;
+	text = txt;
 	create();
 }
