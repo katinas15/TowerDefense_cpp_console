@@ -35,12 +35,12 @@ namespace lib {
 };
 class langas {	//uzspalvinama pasirinkta vieta
 protected:
-	int x;
-	int y;
-	int width;
-	int height;
-	int color;
-	int borderType;
+	int x = 0;
+	int y = 0;
+	int width = 0;
+	int height = 0;
+	int color = 0;
+	int borderType = 0;
 public:
 	bool setXY(int, int);
 	bool setWidth(int);
@@ -64,7 +64,7 @@ public:
 
 class table : public langas {
 protected:
-	int rows;
+	int rows = 0;
 	string text[10000];
 public:
 	
@@ -94,11 +94,12 @@ public:
 
 class variableText {
 private:
-	short color;
-	double data;
+	short color = 0;
+	double data = 0;
 	string message;
 	COORD coord;
-	bool position;
+	bool position = true;
+	bool show = true;
 public:
 	bool setXY(int, int);
 	void setText(string);
@@ -106,6 +107,7 @@ public:
 	void setVariable(double);
 	void setSide(bool);
 	void create();
+	void showVariable(bool);
 	//set leidzia viska iskarto padaryti
 	void set(int, int, string, short, double, bool);
 };
