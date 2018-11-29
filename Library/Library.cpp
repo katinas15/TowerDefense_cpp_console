@@ -444,12 +444,11 @@ void langas::remove() {
 void langas::set(int sx, int sy, int swidth, int sheight, int scolor, int sborderType) {
 	/*istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais*/
 	remove();
-	x = sx;
-	y = sy;
-	width = swidth;
-	height = sheight;
-	color = scolor;
-	borderType = sborderType;
+	setXY(sx,sy);
+	setWidth(swidth);
+	setHeight(sheight);
+	setColor(scolor);
+	setBorder(sborderType);
 	create();
 }
 
@@ -591,13 +590,12 @@ void table::remove() {
 void table::set(int sx, int sy, int swidth, int sheight, int scolor, int srows, int sborderType) {
 	//istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais
 	remove();
-	x = sx;
-	y = sy;
-	width = swidth;
-	height = sheight;
-	color = scolor;
-	rows = srows;
-	borderType = sborderType;
+	setXY(sx, sy);
+	setWidth(swidth);
+	setHeight(sheight);
+	setColor(scolor);
+	setRows(srows);
+	setBorder(sborderType);
 	create();
 }
 
@@ -724,33 +722,48 @@ void menu::check() {//tikrinama ar buvo paspausta ar pele uzvesta ant kazkurio i
 	}
 }
 
+void menu::set(int sx, int sy, int swidth, int sheight, int scolor, int srows, int sborderType) {
+	//istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais
+	remove();
+	setXY(sx, sy);
+	setWidth(swidth);
+	setHeight(sheight);
+	setColor(scolor);
+	setRows(srows);
+	setBorder(sborderType);
+	create();
+}
+
 void menu::setFunction(int index, function<void()> f)
 {
 	object[index].funkcija = f;
 }
 
-void menu::set(int sx, int sy, int swidth, int sheight, int scolor, int srows, int sborderType) {
-	//istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais
-	remove();
-	x = sx;
-	y = sy;
-	width = swidth;
-	height = sheight;
-	color = scolor;
-	rows = srows;
-	borderType = sborderType;
-	create();
+bool variableText::setXY(int a, int b) { 
+	if (a < 0 || b < 0) {
+		lib::errorMessage("Failed to set XY");
+		coord.X = 0; coord.Y = 0;
+		return false;
+	}
+	else {
+		coord.X = a; coord.Y = b;
+		return true;
+	}
 }
-
-
-
-
-
-void variableText::setCoord(int x1, int y1) { coord.X = x1; coord.Y = y1; }
-void variableText::Message(string msg) { message = msg; }
-void variableText::setColor(short col) { color = col; }
+void variableText::setText(string msg) { message = msg; }
+bool variableText::setColor(short a) {
+	if (a < 0 || a > 255) {
+		lib::errorMessage("Failed to set color");
+		color = 0;
+		return false;
+	}
+	else {
+		color = a;
+		return true;
+	}
+}
 void variableText::setVariable(double dat) { data = dat; }
-void variableText::setPosition(bool pos) { position = pos; }
+void variableText::setSide(bool pos) { position = pos; }
 void variableText::create() { //if position == true isveda pirmiau teksta
 	lib::setColor(color);
 	lib::setCursorPosition(coord.X, coord.Y);
@@ -759,11 +772,11 @@ void variableText::create() { //if position == true isveda pirmiau teksta
 }
 //set leidzia viska iskarto padaryti
 void variableText::set(int x1, int y1, string msg, short col, double dat, bool pos) {
-	setCoord(x1, y1);
-	Message(msg);
+	setXY(x1, y1);
+	setText(msg);
 	setColor(col);
 	setVariable(dat);
-	setPosition(pos);
+	setSide(pos);
 	create();
 }
 
@@ -860,12 +873,11 @@ void textField::set(int sx, int sy, int swidth, int sheight, int scolor, int sbo
 {
 	/*istrinama sena lentele ir sukuriama nauja lentele su naujais parametrais*/
 	remove();
-	x = sx;
-	y = sy;
-	width = swidth;
-	height = sheight;
-	color = scolor;
-	borderType = sborderType;
-	text = txt;
+	setXY(sx, sy);
+	setWidth(swidth);
+	setHeight(sheight);
+	setColor(scolor);
+	setBorder(sborderType);
+	setText(txt);
 	create();
 }
