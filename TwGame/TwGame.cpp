@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "Library.h"
 
 int main()
@@ -14,7 +13,7 @@ int main()
 
 	variableText text;
 	text.setXY(10, 0);
-	text.setText("Jei nera nuotrauku reikia kode nustatyti tinkama nuotrauku   ");
+	text.setText("Jei nera nuotrauku reikia kode nustatyti tinkama nuotrauku direktorija");
 	text.setVariable(1);
 	text.setColor(9);
 	text.setSide(true);
