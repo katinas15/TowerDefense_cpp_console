@@ -12,7 +12,13 @@ int main()
 //	lib::setCursorPosition(a.X,a.Y);
 	lib::setCursorVisibility(false);
 
-
+	variableText text;
+	text.setXY(10, 0);
+	text.setText("Testing ");
+	text.setVariable(1);
+	text.setColor(9);
+	text.setSide(true);
+	text.create();
 	/*----------------------------------------------------------------------
 	------------------------------------------------------------------------
 	-----SKIRTINGI BUDAI KAIP GALIMA SUKURTI LANGA, TABLE AR MENIU----------*/
@@ -49,7 +55,7 @@ int main()
 	b.setFunction(5, bind(lib::printText,30, 20, "cat", 2 + 16 * 4));
 
 	//teisingas rasymo formatas C:/pictures ------------ pasviras bruksnelis "/" o ne "\"
-	vector<string> files = lib::fileTypeInFolder("C:/Users/katinas/Downloads/tower_defense_game-master/tower_defense_game-master/pictures", "bmp");	//nustatyti kur yra visi pictures (ideta i project pictures papke)
+	vector<string> files = lib::fileTypeInFolder("C:/Users/katinas/Desktop/tower_defense_game-master/pictures", "bmp");	//nustatyti kur yra visi pictures (ideta i project pictures papke)
 	//table,   x,y,width,height,color,rows,text,bordertype
 	menu bmpFiles;
 	bmpFiles.setXY(60, 1);
