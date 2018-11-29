@@ -1,8 +1,4 @@
-// TwGame.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include "pch.h"
-//#include <iostream>
 #include "Library.h"
 
 int main()
@@ -11,16 +7,15 @@ int main()
 	lib::remove_scrollbar(); //nuima is console scroll bar	
 	lib::setFontSize(10, 20);	//fonto dydis
 	//lib::goFullscreen();	//fullscreen
-	//lib::printText(30, 20, "nibba", 2+16*4); //x,y,string,color
 	//COORD a = lib::getMousePosition();	//get mouse position
 	lib::setConsoleResolution(1280, 720); // set resolution
 //	lib::setCursorPosition(a.X,a.Y);
 	lib::setCursorVisibility(false);
 
 
-	/*----------------------------------
-	-------------------------------------
-	-----SKIRTINGI BUDAI KAIP GALIMA SUKURTI LANGA, TABLE AR MENIU*/
+	/*----------------------------------------------------------------------
+	------------------------------------------------------------------------
+	-----SKIRTINGI BUDAI KAIP GALIMA SUKURTI LANGA, TABLE AR MENIU----------*/
 
 	langas a;	//paprastas langas,   x,y,width,height,color,bordertype
 	a.setXY(22,13);
@@ -32,7 +27,7 @@ int main()
 	//lib::goFullscreen();	//fullscreen
 	lib::printText(0, 30, "Jei neveikia pele: 2-mouse ant consoles->Properties->Options->'uncheck' Quick Edit Mode", 15);
 
-	textField test;
+	textField test; //teksto langas
 	test.set(70, 15, 25, 5, 2+15*16, 1, "Kad galetumete naudotis meniu, reikia paspausti 1-peles klavisa ant pasirinkto meniu punkto");
 	
 	//bliac juk ngl compilint xd
@@ -69,8 +64,6 @@ int main()
 	}
 
 	bmpFiles.create();
-
-	//FUNKCIJAS APIBREZTI TIKTAI PO CREATE ARBA SET!!!!
 	bmpFiles.setFunction(0, bind(&lib::nothing));
 	//priskiriama print funkcija
 	for (int i = 0; i < files.size(); i++) {
@@ -87,5 +80,4 @@ int main()
 	}
 	return 0;
 }
-//prideti teksto langa, toks langas kur tiesiog yra surasomas tekstas be table, poto sudeti set funkcijas o ne global kintamuosius turet klasese
 //Darba atliko Laimonas Janutėnas ir Gediminas Kailiūnas
