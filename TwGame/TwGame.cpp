@@ -14,10 +14,11 @@ int main()
 
 	variableText text;
 	text.setXY(10, 0);
-	text.setText("Testing ");
+	text.setText("Jei nera nuotrauku reikia kode nustatyti tinkama nuotrauku   ");
 	text.setVariable(1);
 	text.setColor(9);
 	text.setSide(true);
+	text.showVariable(false);
 	text.create();
 	/*----------------------------------------------------------------------
 	------------------------------------------------------------------------
@@ -64,7 +65,7 @@ int main()
 	bmpFiles.setColor(1 + 16 * 15);
 	bmpFiles.setRows(files.size() + 1);
 	bmpFiles.setBorder(1);
-	bmpFiles.setText(0 , "(CLICK TO PRINT)");
+	bmpFiles.setText(0 , "(CLICK ON PICTURE BELOW TO PRINT)");
 	for (int i = 0; i < files.size(); i++) {
 		bmpFiles.setText(i+1, "..." + files[i].substr(files[i].length() - 20, 20)); //isvesti tik 20 char
 	}
