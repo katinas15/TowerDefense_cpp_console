@@ -763,12 +763,18 @@ bool variableText::setColor(short a) {
 	}
 }
 void variableText::setVariable(double dat) { data = dat; }
+void variableText::showVariable(bool a) { show = a; }
 void variableText::setSide(bool pos) { position = pos; }
 void variableText::create() { //if position == true isveda pirmiau teksta
 	lib::setColor(color);
 	lib::setCursorPosition(coord.X, coord.Y);
-	if (position) cout << message << data;
-	else cout << data << message;
+	if (show == false) {
+		cout << message;
+	}
+	else {
+		if (position) cout << message << data;
+		else cout << data << message;
+	}
 }
 //set leidzia viska iskarto padaryti
 void variableText::set(int x1, int y1, string msg, short col, double dat, bool pos) {
