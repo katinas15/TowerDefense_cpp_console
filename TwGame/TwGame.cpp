@@ -23,57 +23,60 @@ int main()
 	-----SKIRTINGI BUDAI KAIP GALIMA SUKURTI LANGA, TABLE AR MENIU*/
 
 	langas a;	//paprastas langas,   x,y,width,height,color,bordertype
-	a.x = 22;
-	a.y = 13;
-	a.width = 10;
-	a.height = 10;
-	a.color = 15;
-	a.borderType = 2;
+	a.setXY(22,13);
+	a.setWidth(10);
+	a.setHeight(10);
+	a.setColor(15);
+	a.setBorder(2);
 
 	//lib::goFullscreen();	//fullscreen
 	lib::printText(0, 30, "Jei neveikia pele: 2-mouse ant consoles->Properties->Options->'uncheck' Quick Edit Mode", 15);
+
+	textField test;
+	test.set(70, 15, 25, 5, 2+15*16, 1, "Kad galetumete naudotis meniu, reikia paspausti 1-peles klavisa ant pasirinkto meniu punkto");
 	
+	//bliac juk ngl compilint xd
 	menu b;	//menu,   x,y,width,height,color,rows,text,bordertype, object
-	b.text[0] = "MENU";
-	b.text[1] = "langas create";
-	b.text[2] = "langas remove";
-	b.text[3] = "resolution 1280x720";
-	b.text[4] = "resolution 800x600";
-	b.text[5] = "print Text";
+	b.setText(0, "MENU");
+	b.setText(1, "langas create");
+	b.setText(2,"langas remove");
+	b.setText(3,"resolution 1280x720");
+	b.setText(4,"resolution 800x600");
+	b.setText(5,"print Text");
 
 	b.set(0, 1, 20, 2, 15, 6, 2);	//arba su set
-	b.object[0].funkcija = bind(&lib::nothing);	//objecktui priskiriamos funkcijos
-	b.object[1].funkcija = bind(&langas::create, a);	
-	b.object[2].funkcija = bind(&langas::remove, a);
-	b.object[3].funkcija = bind(&lib::setConsoleResolution, 1280, 720);
-	b.object[4].funkcija = bind(&lib::setConsoleResolution, 800, 600);
-	b.object[5].funkcija = bind(&lib::printText, 40,20,"Hello",196);
+
+	b.setFunction(0, bind(&lib::nothing));//objecktui priskiriamos funkcijos
+	b.setFunction(1, bind(&langas::create, a));
+	b.setFunction(2, bind(&langas::remove, a));
+	b.setFunction(3, bind(&lib::setConsoleResolution, 1280, 720));
+	b.setFunction(4, bind(&lib::setConsoleResolution, 800, 600));
+	b.setFunction(5, bind(lib::printText,30, 20, "cat", 2 + 16 * 4));
 
 	//teisingas rasymo formatas C:/pictures ------------ pasviras bruksnelis "/" o ne "\"
-	vector<string> files = lib::fileTypeInFolder("I:/chrome/tower_defense_game-master/tower_defense_game-master/pictures", "bmp");	//nustatyti kur yra visi pictures (ideta i project pictures papke)
+	vector<string> files = lib::fileTypeInFolder("C:/Users/katinas/Downloads/tower_defense_game-master/tower_defense_game-master/pictures", "bmp");	//nustatyti kur yra visi pictures (ideta i project pictures papke)
 	//table,   x,y,width,height,color,rows,text,bordertype
 	menu bmpFiles;
-	bmpFiles.x = 60;
-	bmpFiles.y = 1;
-	bmpFiles.width = 40;
-	bmpFiles.height = 2;
-	bmpFiles.color = 1 + 16 * 15;
-	bmpFiles.rows = files.size() + 1;
-	bmpFiles.borderType = 1;
-	bmpFiles.text[0] = "(CLICK TO PRINT)";
+	bmpFiles.setXY(60, 1);
+	bmpFiles.setWidth(40);
+	bmpFiles.setHeight(2);
+	bmpFiles.setColor(1 + 16 * 15);
+	bmpFiles.setRows(files.size() + 1);
+	bmpFiles.setBorder(1);
+	bmpFiles.setText(0 , "(CLICK TO PRINT)");
 	for (int i = 0; i < files.size(); i++) {
-		bmpFiles.text[i+1] = "..." + files[i].substr(files[i].length() - 20, 20); //isvesti tik 20 char
+		bmpFiles.setText(i+1, "..." + files[i].substr(files[i].length() - 20, 20)); //isvesti tik 20 char
 	}
 
 	bmpFiles.create();
 
 	//FUNKCIJAS APIBREZTI TIKTAI PO CREATE ARBA SET!!!!
-	bmpFiles.object[0].funkcija = bind(&lib::nothing);
+	bmpFiles.setFunction(0, bind(&lib::nothing));
 	//priskiriama print funkcija
 	for (int i = 0; i < files.size(); i++) {
-		bmpFiles.object[i + 1].funkcija = bind(&lib::printBMP, files[i], 800, 200);
+		bmpFiles.setFunction(i+1, bind(&lib::printBMP, files[i], 800, 200));
 	}
-
+	
 	while (1) {
 
 		if (lib::mouseEvent()) {
@@ -84,5 +87,5 @@ int main()
 	}
 	return 0;
 }
-
+//prideti teksto langa, toks langas kur tiesiog yra surasomas tekstas be table, poto sudeti set funkcijas o ne global kintamuosius turet klasese
 //Darba atliko Laimonas Janutėnas ir Gediminas Kailiūnas
