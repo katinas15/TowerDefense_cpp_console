@@ -23,7 +23,10 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TwGame.cpp">
+    <ClCompile Include="library test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gameStart.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
