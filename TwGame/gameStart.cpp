@@ -34,4 +34,15 @@ int main()
 	getchar();
 	return 0;
 }
+/*
+enemy judejimas
+sukurti kad enemy vaiksciotu pagal path
+path editor
+padaryti kad judetu keli enemy vienu metu
+
+sukurti tower
+tower saudymas
+tower placinimas
+
+*/
 
