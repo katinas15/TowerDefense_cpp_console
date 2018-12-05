@@ -42,7 +42,6 @@ public:
 		}
 	}
 	void create() {
-		//del();
 		char ch = char(178);
 		lib::setColor(4);
 		lib::setCursorPosition(x, y - 1);
@@ -97,7 +96,9 @@ int main()
 	lib::setFontSize(10, 10);
 	lib::setConsoleResolution(1280, 720);
 	lib::remove_scrollbar();
+	lib::setCursorVisibility(false);
 	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
 	field gameField;
 
 	enemy a;
