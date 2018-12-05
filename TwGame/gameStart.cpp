@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Library.h"
 #include <thread>
+#include <iostream>
 
 const int fieldColor = 2 * 16;
 int laukas[50][50];
@@ -10,7 +11,14 @@ void printLaukas() {
 	lib::setColor(fieldColor);
 	for (int i = 0; i < 50; i++) {
 		for (int j = 0; j < 50; j++) {
-			cout << " ";
+			if (laukas[i][j] == 1) {
+				lib::setCursorPosition(i, j);
+				cout << " ";
+				/*for (int g = -1; g <= 1; g++) {
+					lib::setCursorPosition(i-1,j+g);
+					cout << "   ";
+				}*/
+			}
 		}
 		cout << endl;
 	}
@@ -40,7 +48,7 @@ public:
 			}
 		}
 	}
-	void create() {
+	void create() {	//pirmineje stadijoje nezinome i kuria puse eiti todel tai reiia nustatyti
 		if (laukas[x + 1][y] == 1) {	//desine
 			desine = true;
 			horizontalu = true;
@@ -114,12 +122,12 @@ public:
 		kaire = false;
 		horizontalu = false;
 		vertikalu = true;
-		if (laukas[x][y + 1] == 0) {
+		if (laukas[x][y - 1] == 1) {
 			virsu = true;
-			move(x, y + 1);
-		} else {
-			apacia = true;
 			move(x, y - 1);
+		} else if(laukas[x][y + 1] == 1){
+			apacia = true;
+			move(x, y + 1);
 		}
 	}
 
@@ -128,11 +136,10 @@ public:
 		virsu = false;
 		horizontalu = true;
 		vertikalu = false;
-		if (laukas[x+1][y] == 0) {
+		if (laukas[x + 1][y] == 1) {
 			desine = true;
 			move(x + 1, y);
-		}
-		else {
+		} else if (laukas[x - 1][y] == 1) {
 			kaire = true;
 			move(x - 1, y);
 		}
@@ -141,33 +148,34 @@ public:
 	void followPath() {
 		if (horizontalu) {
 			if (laukas[x + 1][y] == 1 && desine) {	//desine
-				move(x + 1, y);
+				move(x + 1, y);	
 			}
 			else if (laukas[x - 1][y] == 1 && kaire) {	//kaire
 				move(x - 1, y);
 			}
-			else if (laukas[x + 1][y] == 0 && laukas[x - 1][y] == 0) {
-				checkVertical();
+			else if (laukas[x + 1][y] == 0 || laukas[x - 1][y] == 0) {
+				checkVertical();//jeigu nei i kaire, nei i desine negali paeiti einama vertikaliai
 			}
 		}
 		else if (vertikalu) {
-			if (laukas[x][y + 1] == 1 && virsu) {	//virsu
-				move(x, y + 1);
-			}
-			else if (laukas[x][y - 1] == 1 && apacia) {	//zemyn
+			if (laukas[x][y - 1] == 1 && virsu) {	//virsu
 				move(x, y - 1);
 			}
-			else if (laukas[x][y - 1] == 0 && laukas[x][y + 1] == 0) {
-				checkHorizontal();
+			else if (laukas[x][y + 1] == 1 && apacia) {	//zemyn
+				move(x, y + 1);
+			}
+			else if (laukas[x][y - 1] == 0 || laukas[x][y + 1] == 0) {
+				checkHorizontal();	//jeigu nei i virsu, nei i apacia negali eiti einama horizontaliai
 			}
 		}
-
-
+		//jei bus nenurodyta pabaiga, vaikscios pirmyn atgal, nes checkHorizontal padarys vertical = false ir kitu ciklu checkVertical ras praeita reiksme ir eis atgal
 	}
 };
 
 int main()
 {
+	ifstream fd("map.txt");
+	
 	lib::setFontSize(10, 10);
 	lib::setConsoleResolution(1280, 720);
 	lib::remove_scrollbar();
@@ -176,33 +184,28 @@ int main()
 	ios_base::sync_with_stdio(false);//pagreitina isvedima
 	cin.tie(NULL);
 
+	for (int i = 0; i < 50; i++) {
+		for (int j = 0; j < 50; j++) {
+			fd >> laukas[j][i];
+		}
+	}
+	printLaukas();
+
+	/*ofstream fr("map.txt");
+	for (int i = 0; i < 50; i++) {
+		for (int j = 0; j < 50; j++) {
+			fr << "0 ";
+		}
+		fr << endl;
+	}*/
+
 	enemy a;
-	enemy b;
-	b.setXY(10, 10);
-	a.setXY(5, 5);
-	b.create();
+	a.setXY(3, 3);
 	a.create(); 
+
 	while (1) {
-		for (int i = 0; i < 30; i++) {
-			b.move(20, i);
-			a.move(5, i);
-			Sleep(20);
-		}
-		for (int i = 0; i < 30; i++) {
-			a.move(i, 35);
-			b.move(i, 23);
-			Sleep(20);
-		}
-		for (int i = 30; i > 0; i--) {
-			a.move(30, i);
-			b.move(23, i);
-			Sleep(20);
-		}
-		for (int i = 30; i > 0; i--) {
-			a.move(i, 40);
-			b.move(i, 60);
-			Sleep(20);
-		}
+		a.followPath();
+		Sleep(100);
 	}
 	//cout<< "asdasda";
 	getchar();

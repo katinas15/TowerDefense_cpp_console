@@ -1,5 +1,2 @@
 ﻿  gameStart.cpp
-c:\users\1\source\repos\tower_defense_game\twgame\gamestart.cpp(98): error C2597: illegal reference to non-static member 'field::pos'
-  c:\users\1\source\repos\tower_defense_game\twgame\gamestart.cpp(98): note: see declaration of 'field::pos'
-c:\users\1\source\repos\tower_defense_game\twgame\gamestart.cpp(98): error C3867: 'field::pos': non-standard syntax; use '&' to create a pointer to member
-c:\users\1\source\repos\tower_defense_game\twgame\gamestart.cpp(98): error C2109: subscript requires array or pointer type
+  TwGame.vcxproj -> C:\Users\1\source\repos\tower_defense_game\x64\Debug\TwGame.exe
