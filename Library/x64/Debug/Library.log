@@ -1,1 +1,8 @@
-﻿  Library.vcxproj -> C:\Users\1\source\repos\tower_defense_game\x64\Debug\Library.lib
+﻿  Library.cpp
+c:\users\1\source\repos\tower_defense_game\library\library.cpp(505): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\1\source\repos\tower_defense_game\library\library.cpp(565): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\1\source\repos\tower_defense_game\library\library.cpp(618): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\1\source\repos\tower_defense_game\library\library.cpp(678): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\1\source\repos\tower_defense_game\library\library.cpp(699): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\1\source\repos\tower_defense_game\library\library.cpp(716): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  Library.vcxproj -> C:\Users\1\source\repos\tower_defense_game\x64\Debug\Library.lib

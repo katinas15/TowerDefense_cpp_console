@@ -105,7 +105,7 @@ namespace lib {
 
 	bool mouseRightClick() {//nustatoma ar buvo paspaustas antras mouse
 		ReadConsoleInput(hin, &InputRecord, 1, &Events);
-		if (GetKeyState(VK_LBUTTON) > 0)	//jei 2-mouse mygtukas laivas pastatomas
+		if (GetKeyState(VK_RBUTTON) < 0)	//jei 2-mouse mygtukas laivas pastatomas
 		{
 			return true;
 		}
@@ -232,15 +232,14 @@ namespace lib {
 		return names;
 	}
 
-	void cursorDraw() {
+	void cursorDraw(int backgroundColor, int color) {
 		cursor = getMousePosition();
-		setColor(globalColor);//istrina anksciau buvusi cursor
-		for (int i = 0; i < 2; i++) {
-			for (int j = 0; j < 1; j++) {
-				setCursorPosition(x + i, y + j);
-				cout << " ";
-			}
+		setColor(backgroundColor);//istrina anksciau buvusi cursor
+		for (int i = -1; i <= 1; i++) {
+				setCursorPosition(x - 1, y + i);
+				cout << "   ";
 		}
+		
 
 		/*if (x > cursor.X) {	//kaire
 			int j = x - cursor.X;
@@ -272,13 +271,12 @@ namespace lib {
 
 		x = cursor.X;//naujas cursor
 		y = cursor.Y;
-		setColor(196);
-		for (int i = 0; i < 2; i++) {
-			for (int j = 0; j < 1; j++) {
-				setCursorPosition(x + i, y + j);
-				cout << " ";
-			}
+		setColor(color);
+		for (int i = -1; i <= 1; i++) {
+			setCursorPosition(x - 1, y + i);
+			cout << "   ";
 		}
+		
 		FlushConsoleInputBuffer(hin);
 	}
 

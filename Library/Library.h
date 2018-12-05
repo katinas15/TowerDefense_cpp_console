@@ -30,7 +30,7 @@ namespace lib {
 	void printPixel(int, int, COLORREF);
 	void printBMP(string, int, int);
 	vector<string> fileTypeInFolder(const string&, string);
-	void cursorDraw();
+	void cursorDraw(int,int);
 	void errorMessage(string);
 };
 class langas {	//uzspalvinama pasirinkta vieta

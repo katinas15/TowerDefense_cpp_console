@@ -3,8 +3,9 @@
 #include <thread>
 #include <iostream>
 
-const int fieldColor = 2 * 16;
+const int fieldColor = 6 * 16;
 int laukas[50][50];
+int spawnX, spawnY;
 using namespace std;
 
 void printLaukas() {
@@ -23,6 +24,62 @@ void printLaukas() {
 		cout << endl;
 	}
 }
+
+//pirmas create
+//antras delete
+
+/*
+00000000*/
+class levelEditor{
+public:
+	void print(int x,int y, int color) {
+		lib::setColor(color);
+		/*for (int i = -1; i <= 1; i++) {
+			lib::setCursorPosition(x - 1, y + i);
+			cout << "   ";
+		}*/
+		lib::setCursorPosition(x, y);
+		cout << " ";
+	}
+	void start() {
+		lib::setFontSize(30, 30);
+		lib::setConsoleResolution(1280, 720);
+		lib::clearscreen(15 * 16);
+		lib::remove_scrollbar();
+		lib::setCursorVisibility(false);
+		//lib::cursorDraw(15 * 16, 0);
+		while (1) { //enemy baze
+			if (lib::mouseLeftClick()) {
+				COORD pos = lib::getMousePosition();
+				laukas[pos.X][pos.Y] = 3;
+				spawnX = pos.X;
+				spawnY = pos.Y;
+				print(spawnX, spawnY, 0);
+				break;
+			}
+		}
+
+		while (1) { //path set
+			if (lib::mouseLeftClick()) {
+				COORD pos = lib::getMousePosition();
+				laukas[pos.X][pos.Y] = 1;
+				print(pos.X, pos.Y, 6*16);
+			}
+			else if (lib::mouseRightClick()) {
+				break;
+			}
+		}
+
+		ofstream fr("map.txt");
+		for (int i = 0; i < 50; i++) {
+			for (int j = 0; j < 50; j++) {
+				fr << laukas[i][j];
+			}
+			fr << endl;
+		}
+
+	}	
+};
 
 
 class enemy {
@@ -80,7 +137,7 @@ public:
 	}
 
 	void move(int a,int b) {
-		lib::setColor(4);
+		lib::setColor(fieldColor);
 		if (a > x) {//desine
 			lib::setCursorPosition(x, y - 1);
 			cout << " ";
@@ -174,22 +231,18 @@ public:
 
 int main()
 {
-	ifstream fd("map.txt");
+
 	
 	lib::setFontSize(10, 10);
 	lib::setConsoleResolution(1280, 720);
+	lib::clearscreen(15 * 16);
 	lib::remove_scrollbar();
 	lib::setCursorVisibility(false);
 
 	ios_base::sync_with_stdio(false);//pagreitina isvedima
 	cin.tie(NULL);
 
-	for (int i = 0; i < 50; i++) {
-		for (int j = 0; j < 50; j++) {
-			fd >> laukas[j][i];
-		}
-	}
-	printLaukas();
+
 
 	/*ofstream fr("map.txt");
 	for (int i = 0; i < 50; i++) {
@@ -199,16 +252,63 @@ int main()
 		fr << endl;
 	}*/
 
+	
+
+	levelEditor f;
+	f.start();
+	ifstream fd("map.txt");
+	for (int i = 0; i < 50; i++) {
+		for (int j = 0; j < 50; j++) {
+			fd >> laukas[j][i];
+		}
+	}
+	lib::setFontSize(10, 10);
+	lib::setConsoleResolution(1280, 720);
+	lib::clearscreen(15 * 16);
+	lib::remove_scrollbar();
+	lib::setCursorVisibility(false);
+	printLaukas();
+
 	enemy a;
-	a.setXY(3, 3);
-	a.create(); 
+	a.setXY(spawnX, spawnY);
+	a.create();
+	a.followPath();
+	a.followPath();
+	a.followPath();
+	a.followPath();
+	a.followPath();
+	a.followPath();
+	a.followPath();
+	a.followPath();
+	a.followPath();
+	a.followPath();
+	a.followPath();
+	a.followPath();
+	enemy b;
+	b.setXY(spawnX, spawnY);
+	b.create();
+	b.followPath();
+	b.followPath();
+	b.followPath();
+	b.followPath();
+	b.followPath();
+
+	enemy c;
+	c.setXY(spawnX, spawnY);
+	c.create();
+
+	
 
 	while (1) {
 		a.followPath();
-		Sleep(100);
+		b.followPath();
+		c.followPath();
+		Sleep(20);
 	}
 	//cout<< "asdasda";
 	getchar();
+
+	
 	return 0;
 }
 /*
@@ -218,8 +318,8 @@ int main()
 00001111110111111000
 */
 /*
-enemy judejimas
-sukurti kad enemy vaiksciotu pagal path
+enemy judejimas  --- COMPLETE
+sukurti kad enemy vaiksciotu pagal path --- COMPLETE
 path editor
 padaryti kad judetu keli enemy vienu metu
 
