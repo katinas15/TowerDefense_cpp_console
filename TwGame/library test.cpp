@@ -56,7 +56,7 @@ int main()
 	b.setFunction(5, bind(lib::printText,30, 20, "cat", 2 + 16 * 4));
 
 	//teisingas rasymo formatas C:/pictures ------------ pasviras bruksnelis "/" o ne "\"
-	vector<string> files = lib::fileTypeInFolder("C:/Users/katinas/Desktop/tower_defense_game-master/pictures", "bmp");	//nustatyti kur yra visi pictures (ideta i project pictures papke)
+	vector<string> files = lib::fileTypeInFolder("C:/Users/1/source/repos/tower_defense_game/pictures", "bmp");	//nustatyti kur yra visi pictures (ideta i project pictures papke)
 	//table,   x,y,width,height,color,rows,text,bordertype
 	menu bmpFiles;
 	bmpFiles.setXY(60, 1);

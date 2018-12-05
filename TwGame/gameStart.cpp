@@ -42,20 +42,50 @@ public:
 		}
 	}
 	void create() {
-		del();
+		//del();
 		char ch = char(178);
 		lib::setColor(4);
-		lib::setCursorPosition(x + 1, y - 1);
+		lib::setCursorPosition(x, y - 1);
 		cout << ch;
-		lib::setCursorPosition(x, y);
+		lib::setCursorPosition(x - 1, y);
 		cout << ch << ch << ch;
-		lib::setCursorPosition(x + 1, y + 1);
+		lib::setCursorPosition(x, y + 1);
 		cout << ch;
 	}
 
 	void move(int a,int b) {
-		if (x > a) { //kaire
-
+		lib::setColor(4);
+		if (a > x) {//desine
+			lib::setCursorPosition(x, y - 1);
+			cout << " ";
+			lib::setCursorPosition(x-1, y);
+			cout << " ";
+			lib::setCursorPosition(x, y + 1);
+			cout << " ";
+		}
+		else if (a < x) {//kaire
+			lib::setCursorPosition(x, y - 1);
+			cout << " ";
+			lib::setCursorPosition(x + 1, y);
+			cout << " ";
+			lib::setCursorPosition(x, y + 1);
+			cout << " ";
+		}
+		else if (b > y) {//zemyn
+			lib::setCursorPosition(x-1, y);
+			cout << " ";
+			lib::setCursorPosition(x, y-1);
+			cout << " ";
+			lib::setCursorPosition(x+1, y);
+			cout << " ";
+		}
+		else if (b < y) {//aukstyn
+			lib::setCursorPosition(x - 1, y);
+			cout << " ";
+			lib::setCursorPosition(x, y + 1);
+			cout << " ";
+			lib::setCursorPosition(x + 1, y);
+			cout << " ";
 		}
 		setXY(a, b);
 		create();
@@ -64,8 +94,6 @@ public:
 
 int main()
 {
-
-
 	lib::setFontSize(10, 10);
 	lib::setConsoleResolution(1280, 720);
 	lib::remove_scrollbar();
@@ -73,16 +101,34 @@ int main()
 	field gameField;
 
 	enemy a;
-	a.setXY(5, 0);
+	a.setXY(5, 5);
 	a.create(); 
 	for (int i = 0; i < 30; i++) {
-		a.move(i, 5);
-		Sleep(100);
+		a.move(5, i);
+		Sleep(20);
+	}
+	for (int i = 0; i < 30; i++) {
+		a.move(i, 35);
+		Sleep(20);
+	}
+	for (int i = 30; i > 0; i--) {
+		a.move(30, i);
+		Sleep(20);
+	}
+	for (int i = 30; i > 0; i--) {
+		a.move(i, 40);
+		Sleep(20);
 	}
 	//cout<< "asdasda";
 	getchar();
 	return 0;
 }
+/*
+10000000000000000000
+11111000000000000000
+00001000010000000000
+00001111110111111000
+*/
 /*
 enemy judejimas
 sukurti kad enemy vaiksciotu pagal path

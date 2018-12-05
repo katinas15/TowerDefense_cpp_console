@@ -23,7 +23,7 @@
     <ProjectGuid>{7175CA81-94CD-421B-83C5-0AC96A9E2459}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>TwGame</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -107,7 +107,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\1\source\repos\katinas15\tower_defense_game\Library</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\1\source\repos\tower_defense_game\Library</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
