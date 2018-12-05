@@ -3,32 +3,31 @@
 #include <thread>
 
 const int fieldColor = 2 * 16;
-
+int laukas[50][50];
 using namespace std;
 
-class field {
-private:
-	int pos[50][50];
-public:
-	void set(int x,int y) {
-		pos[x][y] = 1;
-	}
-
-	void print() {
-		lib::setColor(fieldColor);
-		for (int i = 0; i < 50; i++) {
-			for (int j = 0; j < 50; j++) {
-				cout << " ";
-			}
-			cout << endl;
+void printLaukas() {
+	lib::setColor(fieldColor);
+	for (int i = 0; i < 50; i++) {
+		for (int j = 0; j < 50; j++) {
+			cout << " ";
 		}
+		cout << endl;
 	}
-};
+}
+
 
 class enemy {
 private:
 	int x, y;
+	bool virsu = false;
+	bool apacia = false;
+	bool kaire = false;
+	bool desine = false;
+	bool vertikalu = false;
+	bool horizontalu = false;
 public:
+	friend class field;
 	void setXY(int a, int b) {
 		x = a; y = b;
 	}
@@ -42,6 +41,26 @@ public:
 		}
 	}
 	void create() {
+		if (laukas[x + 1][y] == 1) {	//desine
+			desine = true;
+			horizontalu = true;
+		}
+		else if (laukas[x - 1][y] == 1) {	//kaire
+			kaire = true;
+			horizontalu = true;
+		}
+		else if (laukas[x][y + 1] == 1) {	//virsu
+			virsu = true;
+			vertikalu = true;
+		}
+		else if (laukas[x][y - 1] == 1) {	//zemyn
+			apacia = true;
+			vertikalu = true;
+		}
+		print();
+	}
+
+	void print() {
 		char ch = char(178);
 		lib::setColor(4);
 		lib::setCursorPosition(x, y - 1);
@@ -87,7 +106,63 @@ public:
 			cout << " ";
 		}
 		setXY(a, b);
-		create();
+		print();
+	}
+
+	void checkVertical() {
+		desine = false;
+		kaire = false;
+		horizontalu = false;
+		vertikalu = true;
+		if (laukas[x][y + 1] == 0) {
+			virsu = true;
+			move(x, y + 1);
+		} else {
+			apacia = true;
+			move(x, y - 1);
+		}
+	}
+
+	void checkHorizontal() {
+		apacia = false;
+		virsu = false;
+		horizontalu = true;
+		vertikalu = false;
+		if (laukas[x+1][y] == 0) {
+			desine = true;
+			move(x + 1, y);
+		}
+		else {
+			kaire = true;
+			move(x - 1, y);
+		}
+	}
+
+	void followPath() {
+		if (horizontalu) {
+			if (laukas[x + 1][y] == 1 && desine) {	//desine
+				move(x + 1, y);
+			}
+			else if (laukas[x - 1][y] == 1 && kaire) {	//kaire
+				move(x - 1, y);
+			}
+			else if (laukas[x + 1][y] == 0 && laukas[x - 1][y] == 0) {
+				checkVertical();
+			}
+		}
+		else if (vertikalu) {
+			if (laukas[x][y + 1] == 1 && virsu) {	//virsu
+				move(x, y + 1);
+			}
+			else if (laukas[x][y - 1] == 1 && apacia) {	//zemyn
+				move(x, y - 1);
+			}
+			else if (laukas[x][y - 1] == 0 && laukas[x][y + 1] == 0) {
+				checkHorizontal();
+			}
+		}
+
+
 	}
 };
 
@@ -97,9 +172,9 @@ int main()
 	lib::setConsoleResolution(1280, 720);
 	lib::remove_scrollbar();
 	lib::setCursorVisibility(false);
-	ios_base::sync_with_stdio(false);
+
+	ios_base::sync_with_stdio(false);//pagreitina isvedima
 	cin.tie(NULL);
-	field gameField;
 
 	enemy a;
 	enemy b;
