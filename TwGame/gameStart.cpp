@@ -97,27 +97,36 @@ int main()
 	lib::setFontSize(10, 10);
 	lib::setConsoleResolution(1280, 720);
 	lib::remove_scrollbar();
-
+	ios_base::sync_with_stdio(false);
 	field gameField;
 
 	enemy a;
+	enemy b;
+	b.setXY(10, 10);
 	a.setXY(5, 5);
+	b.create();
 	a.create(); 
-	for (int i = 0; i < 30; i++) {
-		a.move(5, i);
-		Sleep(20);
-	}
-	for (int i = 0; i < 30; i++) {
-		a.move(i, 35);
-		Sleep(20);
-	}
-	for (int i = 30; i > 0; i--) {
-		a.move(30, i);
-		Sleep(20);
-	}
-	for (int i = 30; i > 0; i--) {
-		a.move(i, 40);
-		Sleep(20);
+	while (1) {
+		for (int i = 0; i < 30; i++) {
+			b.move(20, i);
+			a.move(5, i);
+			Sleep(20);
+		}
+		for (int i = 0; i < 30; i++) {
+			a.move(i, 35);
+			b.move(i, 23);
+			Sleep(20);
+		}
+		for (int i = 30; i > 0; i--) {
+			a.move(30, i);
+			b.move(23, i);
+			Sleep(20);
+		}
+		for (int i = 30; i > 0; i--) {
+			a.move(i, 40);
+			b.move(i, 60);
+			Sleep(20);
+		}
 	}
 	//cout<< "asdasda";
 	getchar();
