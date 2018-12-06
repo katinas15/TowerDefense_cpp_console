@@ -3,18 +3,29 @@
 #include <thread>
 #include <iostream>
 
-const int fieldColor = 15 * 16;
+const int fieldColor = 6 * 16;
+const int backgroundColor = 15 * 16;
 int laukas[50][33];
 int spawnX = 2, spawnY = 2;
 int baseX = 2, baseY = 2;
 using namespace std;
 
+void readFile() {
+	ifstream fd("map.txt");
+	for (int i = 0; i < 33; i++) {
+		for (int j = 0; j < 50; j++) {
+			fd >> laukas[j][i];
+		}
+	}
+	fd.close();
+}
+
 void printLaukas() {
 	lib::setColor(fieldColor);
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 33; i++) {
 		for (int j = 0; j < 50; j++) {
-			if (laukas[i][j] == 1) {
-				lib::setCursorPosition(i, j);
+			if (laukas[j][i] == 1) {
+				lib::setCursorPosition(j, i);
 				cout << " ";
 				/*for (int g = -1; g <= 1; g++) {
 					lib::setCursorPosition(i-1,j+g);
@@ -33,6 +44,7 @@ private:
 	int pathColor = 6 * 16;
 	int baseColor = 5 * 16;
 	int spawnColor = 0;
+	bool editMode = true;
 
 public:
 	void print(int x,int y, int color) {	//paiso blokus nurodytoje pozicijoje
@@ -50,15 +62,15 @@ public:
 		langas lang;
 		
 		if (a == 3) {		
-			text.set(53, 28, "Spawn point", fieldColor, 0, true, false);
+			text.set(53, 28, "Spawn point", backgroundColor, 0, true, false);
 			lang.set(56, 30, 2, 2, spawnColor, 0);	//taip pat nurodoma blokelio spalva desineje apacioje
 		}
 		else if (a == 2) {
-			text.set(53, 28, "Base", fieldColor, 0, true, false);
+			text.set(53, 28, "Base", backgroundColor, 0, true, false);
 			lang.set(56, 30, 2, 2, baseColor, 0);
 		}
 		else if (a == 1) {
-			text.set(53, 28, "Path", fieldColor, 0, true, false);
+			text.set(53, 28, "Path", backgroundColor, 0, true, false);
 			lang.set(56, 30, 2, 2, pathColor, 0);
 		}
 	}
@@ -73,16 +85,20 @@ public:
 		}
 	}
 
+	void exitEditor() {
+		editMode = false;
+	}
+
 	void start() {
 		lib::setFontSize(20, 20);
 		lib::setConsoleResolution(1280, 720);
 		lib::clearscreen(15 * 16);
 		lib::remove_scrollbar();
 		lib::setCursorVisibility(false);
-		lib::printText(52, 26, "Selected: ", fieldColor);	//koks yra pasirinktas blokas pasako
+		lib::printText(52, 26, "Selected: ", backgroundColor);	//koks yra pasirinktas blokas pasako
 
 		langas lang;	//level editor remeliai
-		lang.set(0, 0, 50, 33, fieldColor, 3);
+		lang.set(0, 0, 50, 33, backgroundColor, 3);
 
 		menu edit;	//level editor pasirinkimu meniu
 		edit.setText(0, "Spawn point");
@@ -91,18 +107,21 @@ public:
 		edit.setText(3, "Save to file");
 		edit.setText(4, "Start game");
 		edit.setText(5, "Main menu");
-		edit.set(50, 0, 14, 4, fieldColor,6, 3);
+		edit.set(50, 0, 14, 4, backgroundColor,6, 3);
 		edit.setFunction(0, bind(&levelEditor::setBlock, this, 3));	//paspaudus nusistato norimas blokas
 		edit.setFunction(1, bind(&levelEditor::setBlock, this, 2));
 		edit.setFunction(2, bind(&levelEditor::setBlock, this, 1));
 		edit.setFunction(3, bind(&levelEditor::saveToFile, this));
-		while (1) { //enemy baze
+		edit.setFunction(4, bind(&levelEditor::exitEditor, this));
+
+		editMode = true;
+		while (editMode) { //enemy baze
 			edit.check();	//tikrina meniu pasirinkimus, ar buvo paspausta ant meniu
 			if (lib::mouseLeftClick()) {	
 				COORD pos = lib::getMousePosition();
 				if (check(pos.X, pos.Y)) {	//tikrinama ar neuzeina uz ribu
 					if (block == 3) {
-						print(spawnX, spawnY, fieldColor);	//istrinamas praeitas spawn pointas, nes gali buti tik vienas spawn
+						print(spawnX, spawnY, backgroundColor);	//istrinamas praeitas spawn pointas, nes gali buti tik vienas spawn
 						laukas[spawnX][spawnY] = 0;	//nutrinama reiksme faile
 						laukas[pos.X][pos.Y] = 3;	//nustatoma 3 del failo saugojimo
 						spawnX = pos.X;	//nustatomos naujos spawn koordinates
@@ -117,7 +136,7 @@ public:
 						}
 					}
 					if (block == 2) {
-						print(baseX, baseY, fieldColor);	//gali buti tik viena baze
+						print(baseX, baseY, backgroundColor);	//gali buti tik viena baze
 						laukas[baseX][baseY] = 0;
 						laukas[pos.X][pos.Y] = 2;
 						baseX = pos.X;
@@ -126,10 +145,10 @@ public:
 					}
 				}
 			}
+			edit.check();
 		}
 	}	
 };
-
 
 class enemy {
 private:
@@ -288,28 +307,17 @@ int main()
 
 	ios_base::sync_with_stdio(false);//pagreitina isvedima
 	cin.tie(NULL);
-
-	/*ofstream fr("map.txt");
-	for (int i = 0; i < 50; i++) {
-		for (int j = 0; j < 50; j++) {
-			fr << "0 ";
-		}
-		fr << endl;
-	}*/
 	
 	levelEditor f;
 	f.start();
-	ifstream fd("map.txt");
-	for (int i = 0; i < 50; i++) {
-		for (int j = 0; j < 50; j++) {
-			fd >> laukas[j][i];
-		}
-	}
+	readFile();
+	
 	lib::setFontSize(14, 14);
 	lib::setConsoleResolution(1280, 720);
-	lib::clearscreen(15 * 16);
+	lib::clearscreen(backgroundColor);
 	lib::remove_scrollbar();
 	lib::setCursorVisibility(false);
+
 	printLaukas();
 
 	enemy a;
