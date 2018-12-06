@@ -339,7 +339,7 @@ bool langas::setColor(int a)
 bool langas::setBorder(int a)
 
 {
-	if (a < 0 || a > 2) {
+	if (a < 0 || a > 3) {
 		lib::errorMessage("Failed to set border");
 		borderType = 0;
 		return false;
@@ -386,6 +386,15 @@ void langas::create() {
 		vd = char(187);
 		ak = char(200);
 		ad = char(188);
+	}
+
+	else if (borderType == 3) {//dvigubas krastas
+		v = char(219);
+		b = char(219);
+		vk = char(219);
+		vd = char(219);
+		ak = char(219);
+		ad = char(219);
 	}
 
 	if (borderType != 0) { // jei krastu nera toliau vnieko nereikia daryti
@@ -636,6 +645,14 @@ void menu::create() {
 			ak = char(200);
 			ad = char(188);
 		}
+		else if (borderType == 3) {//dvigubas krastas
+			v = char(219);
+			b = char(219);
+			vk = char(219);
+			vd = char(219);
+			ak = char(219);
+			ad = char(219);
+		}
 
 
 		lib::setCursorPosition(x, y);
@@ -764,6 +781,7 @@ void variableText::setVariable(double dat) { data = dat; }
 void variableText::showVariable(bool a) { show = a; }
 void variableText::setSide(bool pos) { position = pos; }
 void variableText::create() { //if position == true isveda pirmiau teksta
+	remove();
 	lib::setColor(color);
 	lib::setCursorPosition(coord.X, coord.Y);
 	if (show == false) {
@@ -774,13 +792,22 @@ void variableText::create() { //if position == true isveda pirmiau teksta
 		else cout << data << message;
 	}
 }
+void variableText::remove() {
+	lib::setCursorPosition(coord.X, coord.Y);
+	lib::setColor(color);
+	for (int i = 0; i < message.length(); i++) {
+		cout << " ";
+	}
+}
 //set leidzia viska iskarto padaryti
-void variableText::set(int x1, int y1, string msg, short col, double dat, bool pos) {
+void variableText::set(int x1, int y1, string msg, short col, double dat, bool pos, bool sh) {
+	remove();
 	setXY(x1, y1);
 	setText(msg);
 	setColor(col);
 	setVariable(dat);
 	setSide(pos);
+	showVariable(sh);
 	create();
 }
 

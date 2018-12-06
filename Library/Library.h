@@ -89,7 +89,7 @@ public:
 	void create();
 	void check();
 	void setFunction(int, function<void()>);
-	void set(int, int, int, int, int, int, int);
+	void set(int sx, int sy, int swidth, int sheight, int scolor, int srows, int sborderType);
 };
 
 class variableText {
@@ -108,7 +108,8 @@ public:
 	void setSide(bool);
 	void create();
 	void showVariable(bool);
+	void remove();
 	//set leidzia viska iskarto padaryti
-	void set(int, int, string, short, double, bool);
+	void set(int x1, int y1, string msg, short col, double dat, bool pos, bool sh);
 };
 #endif

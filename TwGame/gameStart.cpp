@@ -3,9 +3,10 @@
 #include <thread>
 #include <iostream>
 
-const int fieldColor = 6 * 16;
+const int fieldColor = 15 * 16;
 int laukas[50][50];
-int spawnX, spawnY;
+int spawnX = 1, spawnY = 1;
+int baseX = 1, baseY = 1;
 using namespace std;
 
 void printLaukas() {
@@ -25,48 +26,92 @@ void printLaukas() {
 	}
 }
 
-//pirmas create
-//antras delete
-
-/*
-00000000*/
 class levelEditor{
+private:
+	int block;	
+	variableText text;
+	int pathColor = 6 * 16;
+	int baseColor = 5 * 16;
+	int spawnColor = 0;
+
 public:
-	void print(int x,int y, int color) {
+	void print(int x,int y, int color) {	//paiso blokus nurodytoje pozicijoje
 		lib::setColor(color);
-		/*for (int i = -1; i <= 1; i++) {
-			lib::setCursorPosition(x - 1, y + i);
-			cout << "   ";
-		}*/
 		lib::setCursorPosition(x, y);
 		cout << " ";
 	}
+	bool check(int x, int y) {
+		if (x < 1 || y < 1 || x > 49 || y > 32) return false;	//tikrina lauko ribas ir jei tinka isveda true
+		else return true;
+	}
+
+	void setBlock(int a) {//funkcija isveda koks yra siuo menu pasirinktas blokas
+		block = a;
+		langas lang;
+		
+		if (a == 3) {		
+			text.set(53, 28, "Spawn point", fieldColor, 0, true, false);
+			lang.set(56, 30, 2, 2, spawnColor, 0);	//taip pat nurodoma blokelio spalva desineje apacioje
+		}
+		else if (a == 2) {
+			text.set(53, 28, "Base", fieldColor, 0, true, false);
+			lang.set(56, 30, 2, 2, baseColor, 0);
+		}
+		else if (a == 1) {
+			text.set(53, 28, "Path", fieldColor, 0, true, false);
+			lang.set(56, 30, 2, 2, pathColor, 0);
+		}
+	}
+
 	void start() {
-		lib::setFontSize(30, 30);
+		lib::setFontSize(20, 20);
 		lib::setConsoleResolution(1280, 720);
 		lib::clearscreen(15 * 16);
 		lib::remove_scrollbar();
 		lib::setCursorVisibility(false);
-		//lib::cursorDraw(15 * 16, 0);
-		while (1) { //enemy baze
-			if (lib::mouseLeftClick()) {
-				COORD pos = lib::getMousePosition();
-				laukas[pos.X][pos.Y] = 3;
-				spawnX = pos.X;
-				spawnY = pos.Y;
-				print(spawnX, spawnY, 0);
-				break;
-			}
-		}
+		lib::printText(52, 26, "Selected: ", fieldColor);	//koks yra pasirinktas blokas pasako
 
-		while (1) { //path set
-			if (lib::mouseLeftClick()) {
+		langas lang;	//level editor remeliai
+		lang.set(0, 0, 50, 33, fieldColor, 3);
+
+		menu edit;	//level editor pasirinkimu meniu
+		edit.setText(0, "Spawn point");
+		edit.setText(1, "Base");
+		edit.setText(2, "Path");
+		edit.setText(3, "Save to file");
+		edit.setText(4, "Start game");
+		edit.setText(5, "Main menu");
+		edit.set(50, 0, 14, 4, fieldColor,6, 3);
+		edit.setFunction(0, bind(&levelEditor::setBlock, this, 3));	//paspaudus nusistato norimas blokas
+		edit.setFunction(1, bind(&levelEditor::setBlock, this, 2));
+		edit.setFunction(2, bind(&levelEditor::setBlock, this, 1));
+		while (1) { //enemy baze
+			edit.check();	//tikrina meniu pasirinkimus, ar buvo paspausta ant meniu
+			if (lib::mouseLeftClick()) {	
 				COORD pos = lib::getMousePosition();
-				laukas[pos.X][pos.Y] = 1;
-				print(pos.X, pos.Y, 6*16);
-			}
-			else if (lib::mouseRightClick()) {
-				break;
+				if (check(pos.X, pos.Y)) {	//tikrinama ar neuzeina uz ribu
+					if (block == 3) {
+						print(spawnX, spawnY, fieldColor);	//istrinamas praeitas spawn pointas, nes gali buti tik vienas spawn
+						laukas[pos.X][pos.Y] = 3;	//nustatoma 3 del failo saugojimo
+						spawnX = pos.X;	//nustatomos naujos spawn koordinates
+						spawnY = pos.Y;
+						print(spawnX, spawnY, 0);	//isvedamas
+					}
+					if (block == 1) {
+						COORD pos = lib::getMousePosition();
+						if (check(pos.X, pos.Y)) {
+							laukas[pos.X][pos.Y] = 1;
+							print(pos.X, pos.Y, pathColor);
+						}
+					}
+					if (block == 2) {
+						print(baseX, baseY, fieldColor);	//gali buti tik viena baze
+						laukas[pos.X][pos.Y] = 2;
+						baseX = pos.X;
+						baseY = pos.Y;
+						print(baseX, baseY, baseColor);
+					}
+				}
 			}
 		}
 
@@ -231,9 +276,7 @@ public:
 
 int main()
 {
-
-	
-	lib::setFontSize(10, 10);
+	lib::setFontSize(15, 15);
 	lib::setConsoleResolution(1280, 720);
 	lib::clearscreen(15 * 16);
 	lib::remove_scrollbar();
@@ -242,8 +285,6 @@ int main()
 	ios_base::sync_with_stdio(false);//pagreitina isvedima
 	cin.tie(NULL);
 
-
-
 	/*ofstream fr("map.txt");
 	for (int i = 0; i < 50; i++) {
 		for (int j = 0; j < 50; j++) {
@@ -251,9 +292,7 @@ int main()
 		}
 		fr << endl;
 	}*/
-
 	
-
 	levelEditor f;
 	f.start();
 	ifstream fd("map.txt");
@@ -262,7 +301,7 @@ int main()
 			fd >> laukas[j][i];
 		}
 	}
-	lib::setFontSize(10, 10);
+	lib::setFontSize(14, 14);
 	lib::setConsoleResolution(1280, 720);
 	lib::clearscreen(15 * 16);
 	lib::remove_scrollbar();
@@ -297,8 +336,6 @@ int main()
 	c.setXY(spawnX, spawnY);
 	c.create();
 
-	
-
 	while (1) {
 		a.followPath();
 		b.followPath();
@@ -308,15 +345,8 @@ int main()
 	//cout<< "asdasda";
 	getchar();
 
-	
 	return 0;
 }
-/*
-10000000000000000000
-11111000000000000000
-00001000010000000000
-00001111110111111000
-*/
 /*
 enemy judejimas  --- COMPLETE
 sukurti kad enemy vaiksciotu pagal path --- COMPLETE
