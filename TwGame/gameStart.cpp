@@ -4,9 +4,9 @@
 #include <iostream>
 
 const int fieldColor = 15 * 16;
-int laukas[50][50];
-int spawnX = 1, spawnY = 1;
-int baseX = 1, baseY = 1;
+int laukas[50][33];
+int spawnX = 2, spawnY = 2;
+int baseX = 2, baseY = 2;
 using namespace std;
 
 void printLaukas() {
@@ -63,6 +63,16 @@ public:
 		}
 	}
 
+	void saveToFile() {
+		ofstream fr("map.txt");
+		for (int i = 0; i < 33; i++) {
+			for (int j = 0; j < 50; j++) {
+				fr << laukas[j][i];
+			}
+			fr << endl;
+		}
+	}
+
 	void start() {
 		lib::setFontSize(20, 20);
 		lib::setConsoleResolution(1280, 720);
@@ -85,6 +95,7 @@ public:
 		edit.setFunction(0, bind(&levelEditor::setBlock, this, 3));	//paspaudus nusistato norimas blokas
 		edit.setFunction(1, bind(&levelEditor::setBlock, this, 2));
 		edit.setFunction(2, bind(&levelEditor::setBlock, this, 1));
+		edit.setFunction(3, bind(&levelEditor::saveToFile, this));
 		while (1) { //enemy baze
 			edit.check();	//tikrina meniu pasirinkimus, ar buvo paspausta ant meniu
 			if (lib::mouseLeftClick()) {	
@@ -92,6 +103,7 @@ public:
 				if (check(pos.X, pos.Y)) {	//tikrinama ar neuzeina uz ribu
 					if (block == 3) {
 						print(spawnX, spawnY, fieldColor);	//istrinamas praeitas spawn pointas, nes gali buti tik vienas spawn
+						laukas[spawnX][spawnY] = 0;	//nutrinama reiksme faile
 						laukas[pos.X][pos.Y] = 3;	//nustatoma 3 del failo saugojimo
 						spawnX = pos.X;	//nustatomos naujos spawn koordinates
 						spawnY = pos.Y;
@@ -106,6 +118,7 @@ public:
 					}
 					if (block == 2) {
 						print(baseX, baseY, fieldColor);	//gali buti tik viena baze
+						laukas[baseX][baseY] = 0;
 						laukas[pos.X][pos.Y] = 2;
 						baseX = pos.X;
 						baseY = pos.Y;
@@ -114,15 +127,6 @@ public:
 				}
 			}
 		}
-
-		ofstream fr("map.txt");
-		for (int i = 0; i < 50; i++) {
-			for (int j = 0; j < 50; j++) {
-				fr << laukas[i][j];
-			}
-			fr << endl;
-		}
-
 	}	
 };
 
