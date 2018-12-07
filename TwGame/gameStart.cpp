@@ -2,6 +2,7 @@
 #include "Library.h"
 #include <thread>
 #include <iostream>
+#include <conio.h>
 
 const int fieldColor = 6 * 16;
 const int backgroundColor = 15 * 16;
@@ -51,7 +52,8 @@ private:
 	int baseColor = 5 * 16;
 	int spawnColor = 0;
 	int saveColor = 15 + 2 * 16;
-	bool editMode = true;
+	bool editMode;
+	bool saveMode;
 
 public:
 	void print(int x,int y, int color) {	//paiso blokus nurodytoje pozicijoje
@@ -80,18 +82,28 @@ public:
 			text.set(53, 28, "Path", backgroundColor, 0, true, false);
 			lang.set(56, 30, 1, 1, pathColor, 0);
 		}
-		lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
 	}
 
 	void input(string &text, int x, int y) {// vienu metu rasoma ir tuo paciu metu detectinama exit ir save mygtukus
 		lib::setColor(0);
 		lib::setCursorPosition(x, y);
 		lib::setCursorVisibility(true);//kai rasoma kad matytusi kursorius
-		cin >> text;
+		while (1) {
+			if (kbhit() != 0) {
+				cout << getch() << endl;
+			}
+		}
 		lib::setCursorVisibility(false);//tada isjungti
+	}
+	
+	void exitSaveMode() {
+		saveMode = false;
+		lib::printText(20, 20, "Exiting... ", 3 + 15 * 16);	
+		Sleep(20);
 	}
 
 	void saveToFile() {
+		saveMode = true;
 		string filename;
 		textField field;
 		field.set(15, 16, 28, 8, saveColor, 0, "Enter file name:");
@@ -102,7 +114,21 @@ public:
 		action.setText(0, " EXIT");
 		action.setText(1, " SAVE");
 		action.set(34, 16, 9, 2, saveColor, 2, 1);
-		//thread file (&levelEditor::input,this, filename, 17, 22);	//lygiagreciai laukiama ivedamo failo pavadinimo
+		action.setFunction(0, bind(&levelEditor::exitSaveMode, this));
+
+		lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
+
+		while (saveMode) {
+			action.check();
+			if (kbhit() != 0) {
+				lib::setColor(0);
+				lib::setCursorPosition(17, 22);
+				lib::setCursorVisibility(true);//kai rasoma kad matytusi kursorius
+				cout << getch();
+			}
+		}
+		lib::setCursorVisibility(false);//tada isjungti
+		drawCurrentSession();
 
 		ofstream fr("map.txt");
 		for (int i = 0; i < 33; i++) {
@@ -115,13 +141,20 @@ public:
 
 	void drawCurrentSession() {	//nupaiso tai kas jau yra editoriuje, skirtas tam kad panaikinti nebereikalingus issokusius meniu
 		lib::setColor(fieldColor);
-		for (int i = 0; i < 33; i++) {
+		//reikia nutrinti kas pries tai buvo ant ekrano
+		for (int i = 1; i < 33; i++) {
 			lib::setCursorPosition(1, i+1);
-			for (int j = 0; j < 50; j++) {
+			for (int j = 1; j < 50; j++) {
 				if (laukas[j][i] == 1) {
-					
-					cout << " ";
+					print(j, i, pathColor);
 				}
+				else if (laukas[j][i] == 2) {
+					print(j, i, baseColor);
+				}
+				else if (laukas[j][i] == 3) {
+					print(j, i, spawnColor);
+				}
+				else print(j, i, backgroundColor);
 			}
 		}
 	}
@@ -174,7 +207,7 @@ public:
 						laukas[pos.X][pos.Y] = 3;	//nustatoma 3 del failo saugojimo
 						spawnX = pos.X;	//nustatomos naujos spawn koordinates
 						spawnY = pos.Y;
-						print(spawnX, spawnY, 0);	//isvedamas
+						print(spawnX, spawnY, spawnColor);	//isvedamas
 					}
 					if (block == 1) {
 						COORD pos = lib::getMousePosition();
