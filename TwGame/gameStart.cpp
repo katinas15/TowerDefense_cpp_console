@@ -10,6 +10,12 @@ int spawnX = 2, spawnY = 2;
 int baseX = 2, baseY = 2;
 using namespace std;
 
+
+
+
+
+
+
 void readFile() {
 	ifstream fd("map.txt");
 	for (int i = 0; i < 33; i++) {
@@ -44,6 +50,7 @@ private:
 	int pathColor = 6 * 16;
 	int baseColor = 5 * 16;
 	int spawnColor = 0;
+	int saveColor = 15 + 2 * 16;
 	bool editMode = true;
 
 public:
@@ -63,19 +70,40 @@ public:
 		
 		if (a == 3) {		
 			text.set(53, 28, "Spawn point", backgroundColor, 0, true, false);
-			lang.set(56, 30, 2, 2, spawnColor, 0);	//taip pat nurodoma blokelio spalva desineje apacioje
+			lang.set(56, 30, 1, 1, spawnColor, 0);	//taip pat nurodoma blokelio spalva desineje apacioje
 		}
 		else if (a == 2) {
 			text.set(53, 28, "Base", backgroundColor, 0, true, false);
-			lang.set(56, 30, 2, 2, baseColor, 0);
+			lang.set(56, 30, 1, 1, baseColor, 0);
 		}
 		else if (a == 1) {
 			text.set(53, 28, "Path", backgroundColor, 0, true, false);
-			lang.set(56, 30, 2, 2, pathColor, 0);
+			lang.set(56, 30, 1, 1, pathColor, 0);
 		}
+		lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
+	}
+
+	void input(string &text, int x, int y) {// vienu metu rasoma ir tuo paciu metu detectinama exit ir save mygtukus
+		lib::setColor(0);
+		lib::setCursorPosition(x, y);
+		lib::setCursorVisibility(true);//kai rasoma kad matytusi kursorius
+		cin >> text;
+		lib::setCursorVisibility(false);//tada isjungti
 	}
 
 	void saveToFile() {
+		string filename;
+		textField field;
+		field.set(15, 16, 28, 8, saveColor, 0, "Enter file name:");
+		variableText text;
+		langas textbox;
+		textbox.set(17,22,24,0,backgroundColor,0);	//vieta kur bus rasomas tekstas
+		menu action;//exit ir save mygtukai
+		action.setText(0, " EXIT");
+		action.setText(1, " SAVE");
+		action.set(34, 16, 9, 2, saveColor, 2, 1);
+		//thread file (&levelEditor::input,this, filename, 17, 22);	//lygiagreciai laukiama ivedamo failo pavadinimo
+
 		ofstream fr("map.txt");
 		for (int i = 0; i < 33; i++) {
 			for (int j = 0; j < 50; j++) {
@@ -85,8 +113,27 @@ public:
 		}
 	}
 
+	void drawCurrentSession() {	//nupaiso tai kas jau yra editoriuje, skirtas tam kad panaikinti nebereikalingus issokusius meniu
+		lib::setColor(fieldColor);
+		for (int i = 0; i < 33; i++) {
+			lib::setCursorPosition(1, i+1);
+			for (int j = 0; j < 50; j++) {
+				if (laukas[j][i] == 1) {
+					
+					cout << " ";
+				}
+			}
+		}
+	}
+
 	void exitEditor() {
 		editMode = false;
+		lib::printText(20, 20, "Loading... ", 3+15*16);	//koks yra pasirinktas blokas pasako
+	}
+
+	void drawBorder() {
+		langas lang;	//level editor remeliai
+		lang.set(0, 0, 50, 33, backgroundColor, 3);
 	}
 
 	void start() {
@@ -96,18 +143,19 @@ public:
 		lib::remove_scrollbar();
 		lib::setCursorVisibility(false);
 		lib::printText(52, 26, "Selected: ", backgroundColor);	//koks yra pasirinktas blokas pasako
-
-		langas lang;	//level editor remeliai
-		lang.set(0, 0, 50, 33, backgroundColor, 3);
+		textField rightclick;
+		rightclick.set(50, 15, 15, 4, 1 + 15 * 16, 0, "Right-click to delete block!");
+		drawBorder();
 
 		menu edit;	//level editor pasirinkimu meniu
 		edit.setText(0, "Spawn point");
 		edit.setText(1, "Base");
 		edit.setText(2, "Path");
-		edit.setText(3, "Save to file");
-		edit.setText(4, "Start game");
-		edit.setText(5, "Main menu");
-		edit.set(50, 0, 14, 4, backgroundColor,6, 3);
+		edit.setText(3, "Save map");
+		edit.setText(4, "Load map");
+		edit.setText(5, "Start game");
+		edit.setText(6, "Main menu");
+		edit.set(50, 0, 14, 2, backgroundColor,7, 3);
 		edit.setFunction(0, bind(&levelEditor::setBlock, this, 3));	//paspaudus nusistato norimas blokas
 		edit.setFunction(1, bind(&levelEditor::setBlock, this, 2));
 		edit.setFunction(2, bind(&levelEditor::setBlock, this, 1));
@@ -143,6 +191,13 @@ public:
 						baseY = pos.Y;
 						print(baseX, baseY, baseColor);
 					}
+				}
+			}
+			if (lib::mouseRightClick()) {	//rightclick istrina bloka
+				COORD pos = lib::getMousePosition();
+				if (check(pos.X, pos.Y)) {
+					laukas[pos.X][pos.Y] = 0;
+					print(pos.X, pos.Y, backgroundColor);
 				}
 			}
 			edit.check();

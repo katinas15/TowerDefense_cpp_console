@@ -50,7 +50,7 @@ public:
 	void fill(int);
 	void create();
 	void remove();
-	void set(int, int, int, int, int, int);
+	void set(int sx, int sy, int swidth, int sheight, int scolor, int sborderType);
 };
 
 class textField : public langas {
@@ -59,7 +59,7 @@ private:
 public:
 	void setText(string);
 	void create();
-	void set(int, int, int, int, int, int, string);
+	void set(int sx, int sy, int swidth, int sheight, int scolor, int sborderType, string txt);
 };
 
 class table : public langas {
