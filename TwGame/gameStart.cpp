@@ -52,6 +52,7 @@ private:
 	int baseColor = 5 * 16;
 	int spawnColor = 0;
 	int saveColor = 15 + 2 * 16;
+	int messageColor = 3 + 15 * 16;
 	bool editMode;
 	bool saveMode;
 
@@ -66,10 +67,9 @@ public:
 		else return true;
 	}
 
-	void setBlock(int a) {//funkcija isveda koks yra siuo menu pasirinktas blokas
+	void selectedBlock(int a) {//funkcija isveda koks yra siuo menu pasirinktas blokas
 		block = a;
 		langas lang;
-		
 		if (a == 3) {		
 			text.set(53, 28, "Spawn point", backgroundColor, 0, true, false);
 			lang.set(56, 30, 1, 1, spawnColor, 0);	//taip pat nurodoma blokelio spalva desineje apacioje
@@ -98,7 +98,7 @@ public:
 	
 	void exitSaveMode() {
 		saveMode = false;
-		lib::printText(20, 20, "Exiting... ", 3 + 15 * 16);	
+		lib::printText(20, 20, "Exiting... ", messageColor);	//message
 		Sleep(20);
 	}
 
@@ -114,17 +114,17 @@ public:
 		action.setText(0, " EXIT");
 		action.setText(1, " SAVE");
 		action.set(34, 16, 9, 2, saveColor, 2, 1);
-		action.setFunction(0, bind(&levelEditor::exitSaveMode, this));
+		action.setFunction(0, bind(&levelEditor::exitSaveMode, this));//iseina is save mode
 
 		lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
 
 		while (saveMode) {
 			action.check();
-			if (kbhit() != 0) {
-				lib::setColor(0);
+			if (_kbhit()) { //isveda kas yra rasoma i pavaadinimo lauka
+				lib::setColor(messageColor);//still testing
 				lib::setCursorPosition(17, 22);
 				lib::setCursorVisibility(true);//kai rasoma kad matytusi kursorius
-				cout << getch();
+				cout << _getch();
 			}
 		}
 		lib::setCursorVisibility(false);//tada isjungti
@@ -161,7 +161,7 @@ public:
 
 	void exitEditor() {
 		editMode = false;
-		lib::printText(20, 20, "Loading... ", 3+15*16);	//koks yra pasirinktas blokas pasako
+		lib::printText(20, 20, "Loading... ", messageColor);	//koks yra pasirinktas blokas pasako
 	}
 
 	void drawBorder() {
@@ -189,9 +189,9 @@ public:
 		edit.setText(5, "Start game");
 		edit.setText(6, "Main menu");
 		edit.set(50, 0, 14, 2, backgroundColor,7, 3);
-		edit.setFunction(0, bind(&levelEditor::setBlock, this, 3));	//paspaudus nusistato norimas blokas
-		edit.setFunction(1, bind(&levelEditor::setBlock, this, 2));
-		edit.setFunction(2, bind(&levelEditor::setBlock, this, 1));
+		edit.setFunction(0, bind(&levelEditor::selectedBlock, this, 3));	//paspaudus nusistato norimas blokas
+		edit.setFunction(1, bind(&levelEditor::selectedBlock, this, 2));
+		edit.setFunction(2, bind(&levelEditor::selectedBlock, this, 1));
 		edit.setFunction(3, bind(&levelEditor::saveToFile, this));
 		edit.setFunction(4, bind(&levelEditor::exitEditor, this));
 
@@ -450,7 +450,9 @@ int main()
 /*
 enemy judejimas  --- COMPLETE
 sukurti kad enemy vaiksciotu pagal path --- COMPLETE
-path editor
+path editor  --- complete
+padaryti kad leistu faila issaugoti su pasirinktu pavadinimu
+padaryti kad leistu uzloadint pasirinka faila is duotu pasirinkimu(tikrintu ar game papkeje kokia yra map failai)
 padaryti kad judetu keli enemy vienu metu
 
 sukurti tower
