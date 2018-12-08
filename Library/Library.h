@@ -85,9 +85,11 @@ struct clickableObject {	//nurodoma kokioje pozicijoje galima paspasti objekta i
 class menu : public table {
 private:
 	clickableObject * object;
+	int lastRow = 0;
 public:
 	void create();
 	void check();
+	void checkNoHover();
 	void setFunction(int, function<void()>);
 	void set(int sx, int sy, int swidth, int sheight, int scolor, int srows, int sborderType);
 };

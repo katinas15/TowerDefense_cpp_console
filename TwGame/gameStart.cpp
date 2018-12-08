@@ -9,6 +9,10 @@ const int backgroundColor = 15 * 16;
 int laukas[50][33];
 int spawnX = 2, spawnY = 2;
 int baseX = 2, baseY = 2;
+int pathColor = 6 * 16;
+int baseColor = 5 * 16;
+int spawnColor = 0;
+
 using namespace std;
 
 void printLaukas() {
@@ -28,26 +32,316 @@ void printLaukas() {
 	}
 }
 
+class enemy {
+private:
+	int x, y;
+	bool virsu = false;
+	bool apacia = false;
+	bool kaire = false;
+	bool desine = false;
+	bool vertikalu = false;
+	bool horizontalu = false;
+public:
+	friend class field;
+	void setXY(int a, int b) {
+		x = a; y = b;
+	}
+	void del() {
+		lib::setColor(fieldColor);
+		for (int i = -1; i <= 1; i++) { //nutrina 3x3 bloka
+			lib::setCursorPosition(x - 1, y + i);
+			for (int j = -1; j <= 1; j++) {
+				cout << " ";
+			}
+		}
+	}
+	void create() {	//pirmineje stadijoje nezinome i kuria puse eiti todel tai reiia nustatyti
+		if (laukas[x + 1][y] == 1) {	//desine
+			desine = true;
+			horizontalu = true;
+		}
+		else if (laukas[x - 1][y] == 1) {	//kaire
+			kaire = true;
+			horizontalu = true;
+		}
+		else if (laukas[x][y + 1] == 1) {	//virsu
+			virsu = true;
+			vertikalu = true;
+		}
+		else if (laukas[x][y - 1] == 1) {	//zemyn
+			apacia = true;
+			vertikalu = true;
+		}
+		print();
+	}
+	void print() {
+		char ch = char(178);
+		lib::setColor(4);
+		lib::setCursorPosition(x, y - 1);
+		cout << ch;
+		lib::setCursorPosition(x - 1, y);
+		cout << ch << ch << ch;
+		lib::setCursorPosition(x, y + 1);
+		cout << ch;
+	}
+	void move(int a, int b) {
+		lib::setColor(fieldColor);
+		if (a > x) {//desine
+			lib::setCursorPosition(x, y - 1);
+			cout << " ";
+			lib::setCursorPosition(x - 1, y);
+			cout << " ";
+			lib::setCursorPosition(x, y + 1);
+			cout << " ";
+		}
+		else if (a < x) {//kaire
+			lib::setCursorPosition(x, y - 1);
+			cout << " ";
+			lib::setCursorPosition(x + 1, y);
+			cout << " ";
+			lib::setCursorPosition(x, y + 1);
+			cout << " ";
+		}
+		else if (b > y) {//zemyn
+			lib::setCursorPosition(x - 1, y);
+			cout << " ";
+			lib::setCursorPosition(x, y - 1);
+			cout << " ";
+			lib::setCursorPosition(x + 1, y);
+			cout << " ";
+		}
+		else if (b < y) {//aukstyn
+			lib::setCursorPosition(x - 1, y);
+			cout << " ";
+			lib::setCursorPosition(x, y + 1);
+			cout << " ";
+			lib::setCursorPosition(x + 1, y);
+			cout << " ";
+		}
+		setXY(a, b);
+		print();
+	}
+	void checkVertical() {
+		desine = false;
+		kaire = false;
+		horizontalu = false;
+		vertikalu = true;
+		if (laukas[x][y - 1] == 1 || laukas[x][y - 1] == 2) {
+			virsu = true;
+			move(x, y - 1);
+		}
+		else if (laukas[x][y + 1] == 1 || laukas[x][y + 1] == 2) {
+			apacia = true;
+			move(x, y + 1);
+		}
+	}
+	void checkHorizontal() {
+		apacia = false;
+		virsu = false;
+		horizontalu = true;
+		vertikalu = false;
+		if (laukas[x + 1][y] == 1 || laukas[x + 1][y] == 2) {
+			desine = true;
+			move(x + 1, y);
+		}
+		else if (laukas[x - 1][y] == 1 || laukas[x - 1][y] == 2) {
+			kaire = true;
+			move(x - 1, y);
+		}
+	}
+	void followPath() {
+		if (horizontalu) {
+			if ((laukas[x + 1][y] == 1 || laukas[x + 1][y] == 2) && desine) {	//desine
+				move(x + 1, y);
+			}
+			else if ((laukas[x - 1][y] == 1 || laukas[x - 1][y] == 2) && kaire) {	//kaire
+				move(x - 1, y);
+			}
+			else if (laukas[x + 1][y] == 0 || laukas[x - 1][y] == 0) {
+				checkVertical();//jeigu nei i kaire, nei i desine negali paeiti einama vertikaliai
+			}
+		}
+		else if (vertikalu) {
+			if ((laukas[x][y - 1] == 1 || laukas[x][y - 1] == 2 ) && virsu) {	//virsu
+				move(x, y - 1);
+			}
+			else if ((laukas[x][y + 1] == 1 || laukas[x][y + 1] == 2 ) && apacia) {	//zemyn
+				move(x, y + 1);
+			}
+			else if (laukas[x][y - 1] == 0 || laukas[x][y + 1] == 0) {
+				checkHorizontal();	//jeigu nei i virsu, nei i apacia negali eiti einama horizontaliai
+			}
+		}
+		//jei bus nenurodyta pabaiga, vaikscios pirmyn atgal, nes checkHorizontal padarys vertical = false ir kitu ciklu checkVertical ras praeita reiksme ir eis atgal
+	}
+	COORD position() {
+		COORD pos;
+		pos.X = x; pos.Y = y;
+		return pos;
+	}
+};
+
+class tower {
+private:
+	int x, y;
+	int damage;
+	int range = 7;
+public:
+	void setXY(int a, int b) {
+		x = a; y = b;
+	}
+	void print() {
+		lib::setColor(0);
+		for (int i = -1; i <= 1; i++) { 
+			lib::setCursorPosition(x - 1, y + i);
+			for (int j = -1; j <= 1; j++) {
+				cout << " ";
+			}
+		}
+		lib::setColor(1*16);
+		lib::setCursorPosition(x, y);
+		cout << " ";
+	}
+	void place() {//tower pirkimas ir tikrinimas ar ten galima padeti tower
+		while (1) {
+
+		}
+	}
+	int returnRange(){
+		return range;
+	}
+	COORD returnPosition(){
+		COORD pos;
+		pos.X = x; pos.Y = y;
+		return pos;
+	}
+};
+
+class mainGame {
+private:
+	vector<enemy> enemyVector;
+	vector<tower> towerVector;
+public:
+	void enemyHit() {
+		while (1) {
+			for (int i = 0; i < towerVector.size(); i++) {
+				COORD towerPos = towerVector[i].returnPosition();
+				int range = towerVector[i].returnRange();
+				for (int j = 0; j < enemyVector.size(); j++) {
+					COORD enemyPos = enemyVector[j].position();
+					if ((enemyPos.X <= towerPos.X + range || enemyPos.X >= towerPos.X - range) && (enemyPos.Y <= towerPos.Y + range && enemyPos.Y >= towerPos.Y - range)) {
+						deleteEnemy(j);
+					}
+				}
+			}
+		}
+	}
+	void printBase(){
+		lib::setCursorPosition(baseX, baseY);
+		lib::setColor(baseColor);
+		cout << " ";
+	}
+	void baseReached(int i) {
+		COORD pos = enemyVector[i].position();
+		if (pos.X == baseX && pos.Y == baseY) {
+			deleteEnemy(i);
+			printBase();
+		}
+	}
+	void printField(int x,int y) {
+		lib::setCursorPosition(x, y);
+		lib::setColor(pathColor);
+		for (int i = -1; i <= 1; i++) {
+			lib::setCursorPosition(x - 1, y + i);
+			for (int j = -1; j <= 1; j++) {
+				cout << " ";
+			}
+		}
+	}
+	void deleteEnemy(int i) {
+	    COORD pos = enemyVector[i].position();
+		enemyVector[i].del();
+		enemyVector.erase(enemyVector.begin() + i);
+		printField(pos.X, pos.Y);
+	}
+	void start() {
+		lib::setFontSize(16, 16);
+		lib::setConsoleResolution(1280, 720);
+		lib::clearscreen(backgroundColor);
+		lib::remove_scrollbar();
+		lib::setCursorVisibility(false);
+
+		menu gameMenu;	//zaidimo menu esantis meniu
+		gameMenu.setText(0, "Place Tower");
+		gameMenu.setText(1, "Save Game");
+		gameMenu.setText(2, "Load Game");
+		gameMenu.setText(3, "Main Menu");
+		gameMenu.setText(4, "Pause Game");
+		gameMenu.set(51, 0, 14, 4, backgroundColor, 5, 3);
+		gameMenu.setFunction(0, bind(&lib::nothing));	
+		gameMenu.setFunction(1, bind(&lib::nothing));
+		gameMenu.setFunction(2, bind(&lib::nothing));
+		gameMenu.setFunction(3, bind(&lib::nothing));
+		gameMenu.setFunction(4, bind(&lib::nothing));
+		drawBorder();
+		tower a;
+		towerVector.push_back(a);
+		towerVector[0].setXY(7, 7);
+		towerVector[0].print();
+		printLaukas();
+		createNewEnemy();
+
+		thread hit (&mainGame::enemyHit, this);
+		hit.join();
+		int k = 0;
+		while (1) {
+			//gameMenu.checkNoHover();
+			for (int i = 0; i < enemyVector.size(); i++) {
+				enemyVector[i].followPath();
+				 
+				baseReached(i);
+				if(k==10){
+					createNewEnemy();
+					k = 0;
+				}
+			}
+			Sleep(40);
+			k++;
+		}
+	}
+	void createNewEnemy() {
+		enemy a;
+		enemyVector.push_back(a);
+		enemyVector[enemyVector.size() - 1].setXY(spawnX, spawnY);
+		enemyVector[enemyVector.size() - 1].create();
+	}
+	void drawBorder() {
+		langas lang;	//game langas remeliai
+		lang.set(0, 0, 51, 34, backgroundColor, 3);
+	}
+};
+void startGame() {
+	mainGame a;
+	a.start();
+}
 class levelEditor{
 private:
 	int block;	
 	variableText text;
-	int pathColor = 6 * 16;
-	int baseColor = 5 * 16;
-	int spawnColor = 0;
 	int saveColor = 15 + 2 * 16;
 	int messageColor = 3 + 15 * 16;
 	bool editMode;
 	bool saveMode;
+	bool loadMode;
 
 public:
-	void print(int x,int y, int color) {	//paiso blokus nurodytoje pozicijoje
+	void print(int x,int y, int color) {	//paiso teksta nurodytoje pozicijoje
 		lib::setColor(color);
 		lib::setCursorPosition(x, y);
 		cout << " ";
 	}
 	bool check(int x, int y) {
-		if (x < 1 || y < 1 || x > 49 || y > 32) return false;	//tikrina lauko ribas ir jei tinka isveda true
+		if (x < 1 || y < 1 || x > 49 || y > 32) return false;	//tikrina lauko ribas ir jei tinka isveda true/ tikrina ar buvo paspausta pasymo ribose
 		else return true;
 	}
 	void selectedBlock(int a) {//funkcija isveda koks yra siuo menu pasirinktas blokas
@@ -73,33 +367,34 @@ public:
 			lib::setCursorPosition(1, i + 1);
 			for (int j = 1; j < 50; j++) {
 				if (laukas[j][i] == 1) {
-					print(j, i, pathColor);
+					print(j, i, pathColor);//path block
 				}
-				else if (laukas[j][i] == 2) {
+				else if (laukas[j][i] == 2) {//base block
 					print(j, i, baseColor);
 				}
-				else if (laukas[j][i] == 3) {
+				else if (laukas[j][i] == 3) {//spawn block
 					print(j, i, spawnColor);
 				}
 				else print(j, i, backgroundColor);
 			}
 		}
 	}
-	void exitEditor() {
+	void exitEditor() {//iseinama is level editor
 		editMode = false;
 		lib::printText(20, 20, "Loading... ", messageColor);	//koks yra pasirinktas blokas pasako
+		startGame();
 	}
 	void drawBorder() {
 		langas lang;	//level editor remeliai
 		lang.set(0, 0, 50, 33, backgroundColor, 3);
 	}
-	void exitSaveMode() {
+	void exitSaveMode() {//iseinama is save lango
 		saveMode = false;
 		lib::printText(20, 20, "Exiting... ", messageColor);	//message
 		Sleep(20);
 		drawCurrentSession();
 	}
-	void saveMapToFile(string file) {
+	void saveMapToFile(string file) {//map issaugomas nurodytame faile
 		saveMode = false;
 		if (file.length() > 0) {
 			lib::printText(20, 20, "Saving... ", messageColor);	//message
@@ -107,13 +402,13 @@ public:
 			ofstream fr(file + ".map");
 			for (int i = 0; i < 33; i++) {
 				for (int j = 0; j < 50; j++) {
-					fr << laukas[j][i];
+					fr << laukas[j][i] << " ";
 				}
 				fr << endl;
 			}
 		}
 	}
-	void saveToFile() {
+	void saveToFile() {//save langas
 		saveMode = true;//save pradeda veikti
 		string filename;//failo pavadinimas
 		langas save;
@@ -129,7 +424,7 @@ public:
 		
 		lib::setCursorPosition(17 + filename.length(), 22);
 		while (saveMode) {
-			lib::setCursorVisibility(true);//tada isjungti
+			lib::setCursorVisibility(true);//ijungiamas cursor kad matytusi kur rasoma
 			if (kbhit()) {	//tikrina kokia buvo paspausta raide
 				lib::setColor(backgroundColor);
 				int ch = getch();
@@ -141,7 +436,7 @@ public:
 				else if (ch == 13) {//jei enter
 					saveMapToFile(filename);
 				}
-				else if (ch == 27 && filename.length() > 0) { //jei escape{
+				else if (ch == 27 && filename.length() > 0) { //jei escape
 					exitSaveMode();
 				}
 				else if (filename.length() < 25 && ch != 0) {
@@ -154,6 +449,12 @@ public:
 		lib::setCursorVisibility(false);//tada isjungti
 		drawCurrentSession();
 	}
+	void exitLoadMode() {
+		loadMode = false;
+		lib::printText(20, 20, "Exiting... ", messageColor);	//message
+		Sleep(20);
+		drawCurrentSession();
+	}
 	void loadMap() {
 		auto path = std::experimental::filesystem::current_path();//nustatoma dabartine direktorija .map failu radimui
 		vector<string> files = lib::fileTypeInFolder(path.string(), "map");	//randami visi map failai
@@ -164,18 +465,49 @@ public:
 		mapFiles.setColor(1 + 16 * 15);
 		mapFiles.setRows(files.size() + 1);
 		mapFiles.setBorder(1);
-		mapFiles.setText(0, "(CLICK ON MAP BELOW TO LOAD)");
+		mapFiles.setText(0, "EXIT");
+
 		for (int i = 0; i < files.size(); i++) {
-
-			mapFiles.setText(i + 1, "..." + files[i].substr(files[i].length() - 20, 20)); //isvesti tik 20 char
+			mapFiles.setText(i + 1, files[i].substr(path.string().length() + 1, files[i].length() - path.string().length())); //is viso path string atimama nereikalinga dalis ir paliekamas map pavadinimas su .map liekana
 		}
-
 		mapFiles.create();
-		mapFiles.setFunction(0, bind(&lib::nothing));
+		mapFiles.setFunction(0, bind(&levelEditor::exitLoadMode, this));
 		//priskiriama print funkcija
 		for (int i = 0; i < files.size(); i++) {
-			mapFiles.setFunction(i + 1, bind(&lib::printBMP, files[i], 800, 200));
+			mapFiles.setFunction(i + 1, bind(&levelEditor::fromFileToMap, this, files[i]));	//nustatoma kad paspaudus ant meniu butu uzkraunamas failas
 		}
+
+		loadMode = true;
+		while (loadMode) {
+			mapFiles.check();
+		}
+		drawCurrentSession();
+	}
+	void fromFileToMap(string filename){
+		loadMode = false;
+		lib::printText(20, 20, "Loading... ", messageColor);	//message
+		Sleep(20);
+		ifstream df(filename);
+		for (int i = 0; i < 33; i++) {
+			for (int j = 0; j < 50; j++) {
+				df >> laukas[j][i];
+				if (laukas[j][i] == 2) {
+					baseX = j;
+					baseY = i;
+				} else if (laukas[j][i] == 3) {
+					spawnX = j;
+					spawnY = i;
+				}
+			}
+		}
+	}
+	void clearAll() {
+		for (int i = 0; i < 33; i++) {
+			for (int j = 0; j < 50; j++) {
+				laukas[j][i] = 0;
+			}
+		}
+		drawCurrentSession();
 	}
 	void start() {
 		lib::setFontSize(20, 20);
@@ -185,7 +517,7 @@ public:
 		lib::setCursorVisibility(false);
 		lib::printText(52, 26, "Selected: ", backgroundColor);	//koks yra pasirinktas blokas pasako
 		textField rightclick;
-		rightclick.set(50, 15, 15, 4, 1 + 15 * 16, 0, "Right-click to delete block!");
+		rightclick.set(50, 20, 15, 4, 1 + 15 * 16, 0, "Right-click to delete block!");
 		drawBorder();
 
 		menu edit;	//level editor pasirinkimu meniu
@@ -196,17 +528,20 @@ public:
 		edit.setText(4, "Load map");
 		edit.setText(5, "Start game");
 		edit.setText(6, "Main menu");
-		edit.set(50, 0, 14, 2, backgroundColor,7, 3);
+		edit.setText(7, "Clear all");
+		edit.set(50, 0, 14, 2, backgroundColor,8, 3);
 		edit.setFunction(0, bind(&levelEditor::selectedBlock, this, 3));	//paspaudus nusistato norimas blokas
 		edit.setFunction(1, bind(&levelEditor::selectedBlock, this, 2));
 		edit.setFunction(2, bind(&levelEditor::selectedBlock, this, 1));
 		edit.setFunction(3, bind(&levelEditor::saveToFile, this));//atidaroma save funkcija
 		edit.setFunction(4, bind(&levelEditor::loadMap, this));	//parodomi kokie map yra papkeje
 		edit.setFunction(5, bind(&levelEditor::exitEditor, this));	//iseinama is editoriaus
+		edit.setFunction(6, bind(&levelEditor::exitEditor, this));	//iseinama is editoriaus
+		edit.setFunction(7, bind(&levelEditor::clearAll, this));	//iseinama is editoriaus
 
 		editMode = true;
 		while (editMode) { //enemy baze
-			while (lib::mouseEvent()) {	//jeigu nera jokio mouse event nera reikalo atlkineti veiksmu
+			while (lib::mouseEvent() && editMode) {	//jeigu nera jokio mouse event nera reikalo atlkineti veiksmu
 				edit.check();	//tikrina meniu pasirinkimus, ar buvo paspausta ant meniu
 				lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
 				if (lib::mouseLeftClick()) {
@@ -249,153 +584,6 @@ public:
 	}	
 };
 
-class enemy {
-private:
-	int x, y;
-	bool virsu = false;
-	bool apacia = false;
-	bool kaire = false;
-	bool desine = false;
-	bool vertikalu = false;
-	bool horizontalu = false;
-public:
-	friend class field;
-	void setXY(int a, int b) {
-		x = a; y = b;
-	}
-	void del() {
-		lib::setColor(fieldColor);
-		for (int i = -1; i <= 1; i++) {
-			lib::setCursorPosition(x-1, y+i);
-			for (int j = -1; j <= 1; j++) {
-				cout << " ";
-			}
-		}
-	}
-	void create() {	//pirmineje stadijoje nezinome i kuria puse eiti todel tai reiia nustatyti
-		if (laukas[x + 1][y] == 1) {	//desine
-			desine = true;
-			horizontalu = true;
-		}
-		else if (laukas[x - 1][y] == 1) {	//kaire
-			kaire = true;
-			horizontalu = true;
-		}
-		else if (laukas[x][y + 1] == 1) {	//virsu
-			virsu = true;
-			vertikalu = true;
-		}
-		else if (laukas[x][y - 1] == 1) {	//zemyn
-			apacia = true;
-			vertikalu = true;
-		}
-		print();
-	}
-
-	void print() {
-		char ch = char(178);
-		lib::setColor(4);
-		lib::setCursorPosition(x, y - 1);
-		cout << ch;
-		lib::setCursorPosition(x - 1, y);
-		cout << ch << ch << ch;
-		lib::setCursorPosition(x, y + 1);
-		cout << ch;
-	}
-
-	void move(int a,int b) {
-		lib::setColor(fieldColor);
-		if (a > x) {//desine
-			lib::setCursorPosition(x, y - 1);
-			cout << " ";
-			lib::setCursorPosition(x-1, y);
-			cout << " ";
-			lib::setCursorPosition(x, y + 1);
-			cout << " ";
-		}
-		else if (a < x) {//kaire
-			lib::setCursorPosition(x, y - 1);
-			cout << " ";
-			lib::setCursorPosition(x + 1, y);
-			cout << " ";
-			lib::setCursorPosition(x, y + 1);
-			cout << " ";
-		}
-		else if (b > y) {//zemyn
-			lib::setCursorPosition(x-1, y);
-			cout << " ";
-			lib::setCursorPosition(x, y-1);
-			cout << " ";
-			lib::setCursorPosition(x+1, y);
-			cout << " ";
-		}
-		else if (b < y) {//aukstyn
-			lib::setCursorPosition(x - 1, y);
-			cout << " ";
-			lib::setCursorPosition(x, y + 1);
-			cout << " ";
-			lib::setCursorPosition(x + 1, y);
-			cout << " ";
-		}
-		setXY(a, b);
-		print();
-	}
-
-	void checkVertical() {
-		desine = false;
-		kaire = false;
-		horizontalu = false;
-		vertikalu = true;
-		if (laukas[x][y - 1] == 1) {
-			virsu = true;
-			move(x, y - 1);
-		} else if(laukas[x][y + 1] == 1){
-			apacia = true;
-			move(x, y + 1);
-		}
-	}
-
-	void checkHorizontal() {
-		apacia = false;
-		virsu = false;
-		horizontalu = true;
-		vertikalu = false;
-		if (laukas[x + 1][y] == 1) {
-			desine = true;
-			move(x + 1, y);
-		} else if (laukas[x - 1][y] == 1) {
-			kaire = true;
-			move(x - 1, y);
-		}
-	}
-
-	void followPath() {
-		if (horizontalu) {
-			if (laukas[x + 1][y] == 1 && desine) {	//desine
-				move(x + 1, y);	
-			}
-			else if (laukas[x - 1][y] == 1 && kaire) {	//kaire
-				move(x - 1, y);
-			}
-			else if (laukas[x + 1][y] == 0 || laukas[x - 1][y] == 0) {
-				checkVertical();//jeigu nei i kaire, nei i desine negali paeiti einama vertikaliai
-			}
-		}
-		else if (vertikalu) {
-			if (laukas[x][y - 1] == 1 && virsu) {	//virsu
-				move(x, y - 1);
-			}
-			else if (laukas[x][y + 1] == 1 && apacia) {	//zemyn
-				move(x, y + 1);
-			}
-			else if (laukas[x][y - 1] == 0 || laukas[x][y + 1] == 0) {
-				checkHorizontal();	//jeigu nei i virsu, nei i apacia negali eiti einama horizontaliai
-			}
-		}
-		//jei bus nenurodyta pabaiga, vaikscios pirmyn atgal, nes checkHorizontal padarys vertical = false ir kitu ciklu checkVertical ras praeita reiksme ir eis atgal
-	}
-};
-
 int main()
 {
 	ios_base::sync_with_stdio(false);//pagreitina isvedima
@@ -403,50 +591,7 @@ int main()
 	
 	levelEditor f;
 	f.start();
-	
-	lib::setFontSize(14, 14);
-	lib::setConsoleResolution(1280, 720);
-	lib::clearscreen(backgroundColor);
-	lib::remove_scrollbar();
-	lib::setCursorVisibility(false);
 
-	printLaukas();
-
-	enemy a;
-	a.setXY(spawnX, spawnY);
-	a.create();
-	a.followPath();
-	a.followPath();
-	a.followPath();
-	a.followPath();
-	a.followPath();
-	a.followPath();
-	a.followPath();
-	a.followPath();
-	a.followPath();
-	a.followPath();
-	a.followPath();
-	a.followPath();
-	enemy b;
-	b.setXY(spawnX, spawnY);
-	b.create();
-	b.followPath();
-	b.followPath();
-	b.followPath();
-	b.followPath();
-	b.followPath();
-
-	enemy c;
-	c.setXY(spawnX, spawnY);
-	c.create();
-
-	while (1) {
-		a.followPath();
-		b.followPath();
-		c.followPath();
-		Sleep(20);
-	}
-	//cout<< "asdasda";
 	getchar();
 
 	return 0;
@@ -456,14 +601,18 @@ enemy judejimas  --- COMPLETE
 sukurti kad enemy vaiksciotu pagal path --- COMPLETE
 path editor  --- complete
 padaryti kad leistu faila issaugoti su pasirinktu pavadinimu --COMPLETE
-padaryti kad leistu uzloadint pasirinka faila is duotu pasirinkimu(tikrintu ar game papkeje kokia yra map failai)
+padaryti kad leistu uzloadint pasirinka faila is duotu pasirinkimu(tikrintu ar game papkeje kokia yra map failai) -- COMPLETE
 
+padaryti kad judetu keli enemy vienu metu -- COMPLETE
 
-padaryti kad judetu keli enemy vienu metu
-
-sukurti tower
+sukurti tower	
 tower saudymas
 tower placinimas
+
+padaryti kad load map meniu galetu uzkrauti daugiau failu, yra scrollbar kazkoks
+kai nuzudomas priesas, pries mirti pakeisti spalva
+implementuoti priesams hp
+padaryt kad negalima butu placint toweri ant towerio (stackint) ir ant tako
 
 */
 

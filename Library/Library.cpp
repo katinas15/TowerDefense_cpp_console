@@ -732,7 +732,44 @@ void menu::check() {//tikrinama ar buvo paspausta ar pele uzvesta ant kazkurio i
 
 			lib::setCursorPosition(object[r].topLeftX + width / 2 - text[r].length() / 2, object[r].topLeftY + height / 2);
 			cout << text[r];
+			break;
+		}
+	}
+}
 
+void menu::checkNoHover() {//tikrinama ar buvo paspausta ar pele uzvesta ant kazkurio is meniu lango
+
+	for (int r = 0; r < rows; r++) {	//tikrinama ant kurio lango uzvesta
+		COORD temp = lib::getMousePosition();	//kai hover pasikeicia spalva
+		if (temp.X > object[r].topLeftX && temp.Y > object[r].topLeftY && object[r].bottomRightX > temp.X && object[r].bottomRightY > temp.Y) {
+			if (lib::mouseLeftClick()) {
+
+				lib::setColor(color);
+				for (int i = 1; i < height; i++) {
+					lib::setCursorPosition(object[lastRow].topLeftX + 1, object[lastRow].topLeftY + i);
+					for (int j = 1; j < width; j++) {
+						cout << " ";
+					}
+				}
+				lib::setCursorPosition(object[lastRow].topLeftX + width / 2 - text[lastRow].length() / 2, object[lastRow].topLeftY + height / 2);
+				cout << text[lastRow];
+				lastRow = r;
+
+				object[r].funkcija(); //jei buvo paspausta ivykdyti funkcija
+				int invertedColor = 255 - color;
+				lib::setColor(invertedColor);
+
+				for (int i = 1; i < height; i++) {
+					lib::setCursorPosition(object[r].topLeftX + 1, object[r].topLeftY + i);
+					for (int j = 1; j < width; j++) {
+						cout << " ";
+					}
+				}
+				//kitos spalvos tekstas
+				lib::setCursorPosition(object[r].topLeftX + width / 2 - text[r].length() / 2, object[r].topLeftY + height / 2);
+				cout << text[r];
+				break;
+			}
 		}
 	}
 }
