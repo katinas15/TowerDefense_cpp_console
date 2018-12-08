@@ -100,6 +100,19 @@ public:
 		saveMode = false;
 		lib::printText(20, 20, "Exiting... ", messageColor);	//message
 		Sleep(20);
+		drawCurrentSession();
+	}
+
+	void saveMapToFile(string file) {
+		if (file.length() > 0) {
+			ofstream fr(file + ".map");
+			for (int i = 0; i < 33; i++) {
+				for (int j = 0; j < 50; j++) {
+					fr << laukas[j][i];
+				}
+				fr << endl;
+			}
+		}
 	}
 
 	void saveToFile() {
@@ -115,28 +128,29 @@ public:
 		action.setText(1, " SAVE");
 		action.set(34, 16, 9, 2, saveColor, 2, 1);
 		action.setFunction(0, bind(&levelEditor::exitSaveMode, this));//iseina is save mode
+		action.setFunction(0, bind(&levelEditor::saveMapToFile, this, filename));//iseina is save mode
 
 		lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
-
+		
 		while (saveMode) {
-			action.check();
-			if (_kbhit()) { //isveda kas yra rasoma i pavaadinimo lauka
-				lib::setColor(messageColor);//still testing
-				lib::setCursorPosition(17, 22);
-				lib::setCursorVisibility(true);//kai rasoma kad matytusi kursorius
-				cout << _getch();
-			}
+			if (_kbhit()) {	//tikrina kokia buvo paspausta raide
+				lib::setColor(backgroundColor);
+				int ch = _getch();
+				if (ch == '\b' && filename.length() > 0) {	//jei buvo paspausta backspace ta raide istrinama ir string ir lange
+					filename.pop_back();
+					lib::setCursorPosition(17 + filename.length(), 22);
+					cout << " ";
+				}
+				else if (filename.length() < 25) {
+					lib::setCursorPosition(17 + filename.length(), 22);
+					filename += char(ch); //paspaustas mygtukas idedamas i string
+					cout << char(ch);	//ir isvedamas konsoleje
+				}
+			} else action.check();	//tikrina kada paspaudziama ant exit ir save
+			
 		}
 		lib::setCursorVisibility(false);//tada isjungti
 		drawCurrentSession();
-
-		ofstream fr("map.txt");
-		for (int i = 0; i < 33; i++) {
-			for (int j = 0; j < 50; j++) {
-				fr << laukas[j][i];
-			}
-			fr << endl;
-		}
 	}
 
 	void drawCurrentSession() {	//nupaiso tai kas jau yra editoriuje, skirtas tam kad panaikinti nebereikalingus issokusius meniu
@@ -197,43 +211,44 @@ public:
 
 		editMode = true;
 		while (editMode) { //enemy baze
-			edit.check();	//tikrina meniu pasirinkimus, ar buvo paspausta ant meniu
-			if (lib::mouseLeftClick()) {	
-				COORD pos = lib::getMousePosition();
-				if (check(pos.X, pos.Y)) {	//tikrinama ar neuzeina uz ribu
-					if (block == 3) {
-						print(spawnX, spawnY, backgroundColor);	//istrinamas praeitas spawn pointas, nes gali buti tik vienas spawn
-						laukas[spawnX][spawnY] = 0;	//nutrinama reiksme faile
-						laukas[pos.X][pos.Y] = 3;	//nustatoma 3 del failo saugojimo
-						spawnX = pos.X;	//nustatomos naujos spawn koordinates
-						spawnY = pos.Y;
-						print(spawnX, spawnY, spawnColor);	//isvedamas
-					}
-					if (block == 1) {
-						COORD pos = lib::getMousePosition();
-						if (check(pos.X, pos.Y)) {
-							laukas[pos.X][pos.Y] = 1;
-							print(pos.X, pos.Y, pathColor);
+			while (lib::mouseEvent()) {	//jeigu nera jokio mouse event nera reikalo atlkineti veiksmu
+				edit.check();	//tikrina meniu pasirinkimus, ar buvo paspausta ant meniu
+				if (lib::mouseLeftClick()) {
+					COORD pos = lib::getMousePosition();
+					if (check(pos.X, pos.Y)) {	//tikrinama ar neuzeina uz ribu
+						if (block == 3) {
+							print(spawnX, spawnY, backgroundColor);	//istrinamas praeitas spawn pointas, nes gali buti tik vienas spawn
+							laukas[spawnX][spawnY] = 0;	//nutrinama reiksme faile
+							laukas[pos.X][pos.Y] = 3;	//nustatoma 3 del failo saugojimo
+							spawnX = pos.X;	//nustatomos naujos spawn koordinates
+							spawnY = pos.Y;
+							print(spawnX, spawnY, spawnColor);	//isvedamas
+						}
+						if (block == 1) {
+							COORD pos = lib::getMousePosition();
+							if (check(pos.X, pos.Y)) {
+								laukas[pos.X][pos.Y] = 1;
+								print(pos.X, pos.Y, pathColor);
+							}
+						}
+						if (block == 2) {
+							print(baseX, baseY, backgroundColor);	//gali buti tik viena baze
+							laukas[baseX][baseY] = 0;
+							laukas[pos.X][pos.Y] = 2;
+							baseX = pos.X;
+							baseY = pos.Y;
+							print(baseX, baseY, baseColor);
 						}
 					}
-					if (block == 2) {
-						print(baseX, baseY, backgroundColor);	//gali buti tik viena baze
-						laukas[baseX][baseY] = 0;
-						laukas[pos.X][pos.Y] = 2;
-						baseX = pos.X;
-						baseY = pos.Y;
-						print(baseX, baseY, baseColor);
+				}
+				if (lib::mouseRightClick()) {	//rightclick istrina bloka
+					COORD pos = lib::getMousePosition();
+					if (check(pos.X, pos.Y)) {
+						laukas[pos.X][pos.Y] = 0;
+						print(pos.X, pos.Y, backgroundColor);
 					}
 				}
 			}
-			if (lib::mouseRightClick()) {	//rightclick istrina bloka
-				COORD pos = lib::getMousePosition();
-				if (check(pos.X, pos.Y)) {
-					laukas[pos.X][pos.Y] = 0;
-					print(pos.X, pos.Y, backgroundColor);
-				}
-			}
-			edit.check();
 		}
 	}	
 };

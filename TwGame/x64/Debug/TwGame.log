@@ -1,2 +1,4 @@
 ﻿  gameStart.cpp
+c:\users\1\source\repos\tower_defense_game\twgame\gamestart.cpp(141): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\1\source\repos\tower_defense_game\twgame\gamestart.cpp(145): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
   TwGame.vcxproj -> C:\Users\1\source\repos\tower_defense_game\x64\Debug\TwGame.exe
