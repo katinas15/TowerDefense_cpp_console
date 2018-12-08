@@ -11,16 +11,6 @@ int spawnX = 2, spawnY = 2;
 int baseX = 2, baseY = 2;
 using namespace std;
 
-void readFile() {
-	ifstream fd("map.txt");
-	for (int i = 0; i < 33; i++) {
-		for (int j = 0; j < 50; j++) {
-			fd >> laukas[j][i];
-		}
-	}
-	fd.close();
-}
-
 void printLaukas() {
 	lib::setColor(fieldColor);
 	for (int i = 0; i < 33; i++) {
@@ -60,7 +50,6 @@ public:
 		if (x < 1 || y < 1 || x > 49 || y > 32) return false;	//tikrina lauko ribas ir jei tinka isveda true
 		else return true;
 	}
-
 	void selectedBlock(int a) {//funkcija isveda koks yra siuo menu pasirinktas blokas
 		block = a;
 		langas lang;
@@ -77,72 +66,11 @@ public:
 			lang.set(56, 30, 1, 1, pathColor, 0);
 		}
 	}
-
-	void exitSaveMode() {
-		saveMode = false;
-		lib::printText(20, 20, "Exiting... ", messageColor);	//message
-		Sleep(20);
-		drawCurrentSession();
-	}
-
-	void saveMapToFile(string file) {
-		if (file.length() > 0) {
-			lib::printText(20, 20, "Saving... ", messageColor);	//message
-			Sleep(20);
-			ofstream fr(file + ".map");
-			for (int i = 0; i < 33; i++) {
-				for (int j = 0; j < 50; j++) {
-					fr << laukas[j][i];
-				}
-				fr << endl;
-			}
-		}
-	}
-
-	void saveToFile() {
-		saveMode = true;
-		string filename;
-		lib::printText(15, 16, "Enter file name: ", messageColor);	//message
-		lib::printText(15, 17, "ESC - exit ", messageColor);	//message
-		lib::printText(15, 18, "ENTER - save ", messageColor);	//message
-
-		langas textbox;
-		textbox.set(17,22,24,0,backgroundColor,0);	//vieta kur bus rasomas tekstas
-
-		lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
-		
-		while (saveMode) {
-			lib::setCursorVisibility(true);//tada isjungti
-			if (_kbhit()) {	//tikrina kokia buvo paspausta raide
-				lib::setColor(backgroundColor);
-				int ch = _getch();
-				if (ch == '\b' && filename.length() > 0) {	//jei buvo paspausta backspace ta raide istrinama ir string ir lange
-					filename.pop_back();
-					lib::setCursorPosition(17 + filename.length(), 22);
-					cout << " ";
-				}
-				else if (ch == '\n') {//jei enter
-					saveMapToFile(filename);
-				}
-				else if (ch == 27 && filename.length() > 0) //jei escape{
-					exitSaveMode();
-				}
-				else if (filename.length() < 25) {
-					lib::setCursorPosition(17 + filename.length(), 22);
-					filename += char(ch); //paspaustas mygtukas idedamas i string
-					cout << char(ch);	//ir isvedamas konsoleje
-				}
-			}
-		}
-		lib::setCursorVisibility(false);//tada isjungti
-		drawCurrentSession();
-	}
-
 	void drawCurrentSession() {	//nupaiso tai kas jau yra editoriuje, skirtas tam kad panaikinti nebereikalingus issokusius meniu
 		lib::setColor(fieldColor);
 		//reikia nutrinti kas pries tai buvo ant ekrano
 		for (int i = 1; i < 33; i++) {
-			lib::setCursorPosition(1, i+1);
+			lib::setCursorPosition(1, i + 1);
 			for (int j = 1; j < 50; j++) {
 				if (laukas[j][i] == 1) {
 					print(j, i, pathColor);
@@ -157,17 +85,98 @@ public:
 			}
 		}
 	}
-
 	void exitEditor() {
 		editMode = false;
 		lib::printText(20, 20, "Loading... ", messageColor);	//koks yra pasirinktas blokas pasako
 	}
-
 	void drawBorder() {
 		langas lang;	//level editor remeliai
 		lang.set(0, 0, 50, 33, backgroundColor, 3);
 	}
+	void exitSaveMode() {
+		saveMode = false;
+		lib::printText(20, 20, "Exiting... ", messageColor);	//message
+		Sleep(20);
+		drawCurrentSession();
+	}
+	void saveMapToFile(string file) {
+		saveMode = false;
+		if (file.length() > 0) {
+			lib::printText(20, 20, "Saving... ", messageColor);	//message
+			Sleep(20);
+			ofstream fr(file + ".map");
+			for (int i = 0; i < 33; i++) {
+				for (int j = 0; j < 50; j++) {
+					fr << laukas[j][i];
+				}
+				fr << endl;
+			}
+		}
+	}
+	void saveToFile() {
+		saveMode = true;//save pradeda veikti
+		string filename;//failo pavadinimas
+		langas save;
+		save.set(14, 15, 30, 8, saveColor, 1);//nupaisomas naujas langas kur parasytas tekstas ir ivedamas failo pavadinimas
+		lib::printText(15, 16, "Enter file name: ", saveColor);	//message
+		lib::printText(15, 17, "ESC - exit ", saveColor);	//message
+		lib::printText(15, 18, "ENTER - save ", saveColor);	//message
 
+		langas textbox;
+		textbox.set(17,22,24,0,backgroundColor,0);	//vieta kur bus rasomas tekstas
+
+		lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
+		
+		lib::setCursorPosition(17 + filename.length(), 22);
+		while (saveMode) {
+			lib::setCursorVisibility(true);//tada isjungti
+			if (kbhit()) {	//tikrina kokia buvo paspausta raide
+				lib::setColor(backgroundColor);
+				int ch = getch();
+				if (ch == '\b' && filename.length() > 0) {	//jei buvo paspausta backspace ta raide istrinama ir string ir lange
+					filename.pop_back();
+					lib::setCursorPosition(17 + filename.length(), 22);
+					cout << " ";
+				}
+				else if (ch == 13) {//jei enter
+					saveMapToFile(filename);
+				}
+				else if (ch == 27 && filename.length() > 0) { //jei escape{
+					exitSaveMode();
+				}
+				else if (filename.length() < 25 && ch != 0) {
+					lib::setCursorPosition(17 + filename.length(), 22);
+					filename += char(ch); //paspaustas mygtukas idedamas i string
+					cout << char(ch);	//ir isvedamas konsoleje
+				}
+			}
+		}
+		lib::setCursorVisibility(false);//tada isjungti
+		drawCurrentSession();
+	}
+	void loadMap() {
+		auto path = std::experimental::filesystem::current_path();//nustatoma dabartine direktorija .map failu radimui
+		vector<string> files = lib::fileTypeInFolder(path.string(), "map");	//randami visi map failai
+		menu mapFiles;	//sukuriamas meniu kad butu galima pasirinkti mapa
+		mapFiles.setXY(15, 10);
+		mapFiles.setWidth(30);
+		mapFiles.setHeight(2);
+		mapFiles.setColor(1 + 16 * 15);
+		mapFiles.setRows(files.size() + 1);
+		mapFiles.setBorder(1);
+		mapFiles.setText(0, "(CLICK ON MAP BELOW TO LOAD)");
+		for (int i = 0; i < files.size(); i++) {
+
+			mapFiles.setText(i + 1, "..." + files[i].substr(files[i].length() - 20, 20)); //isvesti tik 20 char
+		}
+
+		mapFiles.create();
+		mapFiles.setFunction(0, bind(&lib::nothing));
+		//priskiriama print funkcija
+		for (int i = 0; i < files.size(); i++) {
+			mapFiles.setFunction(i + 1, bind(&lib::printBMP, files[i], 800, 200));
+		}
+	}
 	void start() {
 		lib::setFontSize(20, 20);
 		lib::setConsoleResolution(1280, 720);
@@ -191,13 +200,15 @@ public:
 		edit.setFunction(0, bind(&levelEditor::selectedBlock, this, 3));	//paspaudus nusistato norimas blokas
 		edit.setFunction(1, bind(&levelEditor::selectedBlock, this, 2));
 		edit.setFunction(2, bind(&levelEditor::selectedBlock, this, 1));
-		edit.setFunction(3, bind(&levelEditor::saveToFile, this));
-		edit.setFunction(4, bind(&levelEditor::exitEditor, this));
+		edit.setFunction(3, bind(&levelEditor::saveToFile, this));//atidaroma save funkcija
+		edit.setFunction(4, bind(&levelEditor::loadMap, this));	//parodomi kokie map yra papkeje
+		edit.setFunction(5, bind(&levelEditor::exitEditor, this));	//iseinama is editoriaus
 
 		editMode = true;
 		while (editMode) { //enemy baze
 			while (lib::mouseEvent()) {	//jeigu nera jokio mouse event nera reikalo atlkineti veiksmu
 				edit.check();	//tikrina meniu pasirinkimus, ar buvo paspausta ant meniu
+				lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
 				if (lib::mouseLeftClick()) {
 					COORD pos = lib::getMousePosition();
 					if (check(pos.X, pos.Y)) {	//tikrinama ar neuzeina uz ribu
@@ -387,18 +398,11 @@ public:
 
 int main()
 {
-	lib::setFontSize(15, 15);
-	lib::setConsoleResolution(1280, 720);
-	lib::clearscreen(15 * 16);
-	lib::remove_scrollbar();
-	lib::setCursorVisibility(false);
-
 	ios_base::sync_with_stdio(false);//pagreitina isvedima
 	cin.tie(NULL);
 	
 	levelEditor f;
 	f.start();
-	readFile();
 	
 	lib::setFontSize(14, 14);
 	lib::setConsoleResolution(1280, 720);
@@ -451,8 +455,10 @@ int main()
 enemy judejimas  --- COMPLETE
 sukurti kad enemy vaiksciotu pagal path --- COMPLETE
 path editor  --- complete
-padaryti kad leistu faila issaugoti su pasirinktu pavadinimu
+padaryti kad leistu faila issaugoti su pasirinktu pavadinimu --COMPLETE
 padaryti kad leistu uzloadint pasirinka faila is duotu pasirinkimu(tikrintu ar game papkeje kokia yra map failai)
+
+
 padaryti kad judetu keli enemy vienu metu
 
 sukurti tower
