@@ -1,4 +1,128 @@
 ﻿  gameStart.cpp
-c:\users\1\source\repos\tower_defense_game\twgame\gamestart.cpp(141): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-c:\users\1\source\repos\tower_defense_game\twgame\gamestart.cpp(145): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-  TwGame.vcxproj -> C:\Users\1\source\repos\tower_defense_game\x64\Debug\TwGame.exe
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(137): error C2059: syntax error: 'constant'
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(137): error C2838: 'setCursorVisibility': illegal qualified name in member declaration
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(138): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(138): warning C4183: 'drawCurrentSession': missing return type; assumed to be a member function returning 'int'
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(141): error C2628: 'levelEditor' followed by 'void' is illegal (did you forget a ';'?)
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(148): error C2065: 'pathColor': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(148): error C3861: 'print': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(151): error C2065: 'baseColor': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(151): error C3861: 'print': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(154): error C2065: 'spawnColor': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(154): error C3861: 'print': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(156): error C3861: 'print': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(121): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(131): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(132): error C2065: 'ch': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(133): error C2065: 'ch': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(162): error C2065: 'editMode': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(163): error C2065: 'messageColor': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(191): error C2355: 'this': can only be referenced inside non-static member functions or non-static data member initializers
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(191): error C2664: 'void menu::setFunction(int,std::function<void (void)>)': cannot convert argument 2 from 'std::_Binder<std::_Unforced,void (__cdecl levelEditor::* )(int),int>' to 'std::function<void (void)>'
+  c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(191): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(192): error C2355: 'this': can only be referenced inside non-static member functions or non-static data member initializers
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(192): error C2664: 'void menu::setFunction(int,std::function<void (void)>)': cannot convert argument 2 from 'std::_Binder<std::_Unforced,void (__cdecl levelEditor::* )(int),int>' to 'std::function<void (void)>'
+  c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(192): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(193): error C2355: 'this': can only be referenced inside non-static member functions or non-static data member initializers
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(193): error C2664: 'void menu::setFunction(int,std::function<void (void)>)': cannot convert argument 2 from 'std::_Binder<std::_Unforced,void (__cdecl levelEditor::* )(int),int>' to 'std::function<void (void)>'
+  c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(193): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(194): error C2355: 'this': can only be referenced inside non-static member functions or non-static data member initializers
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(194): error C2664: 'void menu::setFunction(int,std::function<void (void)>)': cannot convert argument 2 from 'std::_Binder<std::_Unforced,void (__cdecl levelEditor::* )(void)>' to 'std::function<void (void)>'
+  c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(194): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(195): error C2039: 'exitEditor': is not a member of 'levelEditor'
+  c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(41): note: see declaration of 'levelEditor'
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(195): error C2355: 'this': can only be referenced inside non-static member functions or non-static data member initializers
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(197): error C2065: 'editMode': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(198): error C2065: 'editMode': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(203): error C3861: 'check': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(204): error C2065: 'block': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(205): error C3861: 'print': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(210): error C2065: 'spawnColor': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(210): error C3861: 'print': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(212): error C2065: 'block': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(214): error C3861: 'check': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(216): error C2065: 'pathColor': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(216): error C3861: 'print': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(219): error C2065: 'block': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(220): error C3861: 'print': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(225): error C2065: 'baseColor': undeclared identifier
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(225): error C3861: 'print': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(231): error C3861: 'check': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(233): error C3861: 'print': identifier not found
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(239): error C2059: syntax error: '}'
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(239): error C2143: syntax error: missing ';' before '}'
+c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(400): error C2039: 'start': is not a member of 'levelEditor'
+  c:\users\1\source\repos\katinas15\tower_defense_game\twgame\gamestart.cpp(41): note: see declaration of 'levelEditor'
+
+Project Performance Summary:
+        2 ms  C:\Users\1\source\repos\katinas15\tower_defense_game\Library\Library.vcxproj   2 calls
+                  1 ms  GetTargetPath                              1 calls
+                  1 ms  GetNativeManifest                          1 calls
+     1709 ms  C:\Users\1\source\repos\katinas15\tower_defense_game\TwGame\TwGame.vcxproj   1 calls
+               1709 ms  Build                                      1 calls
+
+Target Performance Summary:
+        0 ms  ResolveReferences                          1 calls
+        0 ms  AfterResolveReferences                     1 calls
+        0 ms  SelectClCompile                            1 calls
+        0 ms  BuildGenerateSourcesTraverse               1 calls
+        0 ms  BeforeBuildGenerateSources                 1 calls
+        0 ms  PreBuildEvent                              1 calls
+        0 ms  _SelectedFiles                             1 calls
+        0 ms  _Xsd                                       1 calls
+        0 ms  MakeDirsForMidl                            1 calls
+        0 ms  WarnCompileDuplicatedFilename              1 calls
+        0 ms  ComputeMIDLGeneratedCompileInputs          1 calls
+        0 ms  _Midl                                      1 calls
+        0 ms  AfterBuildGenerateSources                  1 calls
+        0 ms  AfterBuildGenerateSourcesEvent             1 calls
+        0 ms  _BuildGenerateSourcesAction                1 calls
+        0 ms  BuildGenerateSources                       1 calls
+        0 ms  BuildCompileTraverse                       1 calls
+        0 ms  BeforeClCompile                            1 calls
+        0 ms  ComputeCLInputPDBName                      1 calls
+        0 ms  AfterMidl                                  1 calls
+        0 ms  ExpandSDKReferences                        1 calls
+        0 ms  ResolveAssemblyReferences                  1 calls
+        0 ms  SelectCustomBuild                          1 calls
+        0 ms  SetTelemetryEnvironmentVariables           1 calls
+        0 ms  _PrepareForBuild                           1 calls
+        0 ms  _PrepareForReferenceResolution             2 calls
+        0 ms  BeforeResolveReferences                    1 calls
+        0 ms  _SplitProjectReferencesByFileExistence     1 calls
+        0 ms  _GetProjectReferenceTargetFrameworkProperties   1 calls
+        0 ms  PrepareProjectReferences                   1 calls
+        0 ms  _RemoveNameMetadataFromProjectReferenceItems   1 calls
+        0 ms  ResolveSDKReferences                       1 calls
+        0 ms  GetResolvedWinMD                           2 calls
+        0 ms  FixupCLCompileOptions                      1 calls
+        0 ms  GetNativeManifest                          1 calls
+        0 ms  GetFrameworkPaths                          1 calls
+        0 ms  GetReferenceAssemblyPaths                  1 calls
+        0 ms  SetBuildDefaultEnvironmentVariables        1 calls
+        0 ms  _CheckWindowsSDKInstalled                  1 calls
+        0 ms  SetCABuildNativeEnvironmentVariables       1 calls
+        0 ms  GetTargetPath                              1 calls
+        1 ms  MakeDirsForCl                              1 calls
+        1 ms  PlatformPrepareForBuild                    1 calls
+        1 ms  ComputeReferenceCLInput                    1 calls
+        1 ms  CopyFileToFolders                          1 calls
+        1 ms  AssignProjectConfiguration                 1 calls
+        2 ms  PrepareForBuild                            1 calls
+        3 ms  _CheckForInvalidConfigurationAndPlatform   1 calls
+        4 ms  InitializeBuildStatus                      1 calls
+       39 ms  ResolveProjectReferences                   1 calls
+     1654 ms  ClCompile                                  1 calls
+
+Task Performance Summary:
+        0 ms  Message                                    2 calls
+        0 ms  SetEnv                                     8 calls
+        0 ms  ResolveNonMSBuildProjectOutput             1 calls
+        1 ms  ReadLinesFromFile                          1 calls
+        1 ms  MakeDir                                    4 calls
+        1 ms  Touch                                      1 calls
+        1 ms  WriteLinesToFile                           1 calls
+        1 ms  GetOutOfDateItems                          1 calls
+        1 ms  AssignProjectConfiguration                 1 calls
+       38 ms  MSBuild                                    2 calls
+     1654 ms  CL                                         2 calls

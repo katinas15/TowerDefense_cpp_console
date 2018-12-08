@@ -11,12 +11,6 @@ int spawnX = 2, spawnY = 2;
 int baseX = 2, baseY = 2;
 using namespace std;
 
-
-
-
-
-
-
 void readFile() {
 	ifstream fd("map.txt");
 	for (int i = 0; i < 33; i++) {
@@ -84,18 +78,6 @@ public:
 		}
 	}
 
-	void input(string &text, int x, int y) {// vienu metu rasoma ir tuo paciu metu detectinama exit ir save mygtukus
-		lib::setColor(0);
-		lib::setCursorPosition(x, y);
-		lib::setCursorVisibility(true);//kai rasoma kad matytusi kursorius
-		while (1) {
-			if (kbhit() != 0) {
-				cout << getch() << endl;
-			}
-		}
-		lib::setCursorVisibility(false);//tada isjungti
-	}
-	
 	void exitSaveMode() {
 		saveMode = false;
 		lib::printText(20, 20, "Exiting... ", messageColor);	//message
@@ -105,6 +87,8 @@ public:
 
 	void saveMapToFile(string file) {
 		if (file.length() > 0) {
+			lib::printText(20, 20, "Saving... ", messageColor);	//message
+			Sleep(20);
 			ofstream fr(file + ".map");
 			for (int i = 0; i < 33; i++) {
 				for (int j = 0; j < 50; j++) {
@@ -118,21 +102,17 @@ public:
 	void saveToFile() {
 		saveMode = true;
 		string filename;
-		textField field;
-		field.set(15, 16, 28, 8, saveColor, 0, "Enter file name:");
-		variableText text;
+		lib::printText(15, 16, "Enter file name: ", messageColor);	//message
+		lib::printText(15, 17, "ESC - exit ", messageColor);	//message
+		lib::printText(15, 18, "ENTER - save ", messageColor);	//message
+
 		langas textbox;
 		textbox.set(17,22,24,0,backgroundColor,0);	//vieta kur bus rasomas tekstas
-		menu action;//exit ir save mygtukai
-		action.setText(0, " EXIT");
-		action.setText(1, " SAVE");
-		action.set(34, 16, 9, 2, saveColor, 2, 1);
-		action.setFunction(0, bind(&levelEditor::exitSaveMode, this));//iseina is save mode
-		action.setFunction(0, bind(&levelEditor::saveMapToFile, this, filename));//iseina is save mode
 
 		lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
 		
 		while (saveMode) {
+			lib::setCursorVisibility(true);//tada isjungti
 			if (_kbhit()) {	//tikrina kokia buvo paspausta raide
 				lib::setColor(backgroundColor);
 				int ch = _getch();
@@ -141,13 +121,18 @@ public:
 					lib::setCursorPosition(17 + filename.length(), 22);
 					cout << " ";
 				}
+				else if (ch == '\n') {//jei enter
+					saveMapToFile(filename);
+				}
+				else if (ch == 27 && filename.length() > 0) //jei escape{
+					exitSaveMode();
+				}
 				else if (filename.length() < 25) {
 					lib::setCursorPosition(17 + filename.length(), 22);
 					filename += char(ch); //paspaustas mygtukas idedamas i string
 					cout << char(ch);	//ir isvedamas konsoleje
 				}
-			} else action.check();	//tikrina kada paspaudziama ant exit ir save
-			
+			}
 		}
 		lib::setCursorVisibility(false);//tada isjungti
 		drawCurrentSession();
