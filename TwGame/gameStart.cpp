@@ -185,7 +185,7 @@ class tower {
 private:
 	int x, y;
 	int damage;
-	int range = 7;
+	int range = 5;
 public:
 	void setXY(int a, int b) {
 		x = a; y = b;
@@ -286,27 +286,26 @@ public:
 		drawBorder();
 		tower a;
 		towerVector.push_back(a);
-		towerVector[0].setXY(7, 7);
+		towerVector[0].setXY(10, 18);
 		towerVector[0].print();
 		printLaukas();
 		createNewEnemy();
 
-		thread hit (&mainGame::enemyHit, this);
-		hit.join();
+		thread (&mainGame::enemyHit, this).detach();
 		int k = 0;
 		while (1) {
 			//gameMenu.checkNoHover();
 			for (int i = 0; i < enemyVector.size(); i++) {
 				enemyVector[i].followPath();
-				 
 				baseReached(i);
-				if(k==10){
-					createNewEnemy();
-					k = 0;
-				}
+				
 			}
 			Sleep(40);
 			k++;
+			if (k == 10) {
+				createNewEnemy();
+				k = 0;
+			}
 		}
 	}
 	void createNewEnemy() {
