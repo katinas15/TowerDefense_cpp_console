@@ -829,7 +829,7 @@ void variableText::create() { //if position == true isveda pirmiau teksta
 void variableText::remove() {
 	lib::setCursorPosition(coord.X, coord.Y);
 	lib::setColor(color);
-	for (int i = 0; i < message.length(); i++) {
+	for (int i = 0; i < message.length() + to_string(data).length(); i++) {
 		cout << " ";
 	}
 }
