@@ -3,6 +3,7 @@
 #include <thread>
 #include <iostream>
 #include <conio.h>
+#include <chrono>
 
 const int fieldColor = 6 * 16;
 const int backgroundColor = 15 * 16;
@@ -12,20 +13,43 @@ int baseX = 2, baseY = 2;
 int pathColor = 6 * 16;
 int baseColor = 5 * 16;
 int spawnColor = 0;
+chrono::steady_clock::time_point laikas;
 
 using namespace std;
 
 void printLaukas() {
-	lib::setColor(fieldColor);
+
 	for (int i = 0; i < 33; i++) {
 		for (int j = 0; j < 50; j++) {
 			if (laukas[j][i] == 1) {
-				lib::setCursorPosition(j, i);
-				cout << " ";
-				/*for (int g = -1; g <= 1; g++) {
-					lib::setCursorPosition(i-1,j+g);
+				lib::setColor(fieldColor);
+				for (int g = -1; g <= 1; g++) {
+					lib::setCursorPosition(j - 1, i + g);
 					cout << "   ";
-				}*/
+					if (laukas[j - 1][i + g] == 0) laukas[j - 1][i + g] = 4;
+					if (laukas[j][i + g]	 == 0) laukas[j][i + g] = 4;
+					if (laukas[j + 1][i + g] == 0) laukas[j + 1][i + g] = 4;
+				}
+			}
+			else if (laukas[j][i] == 2) {
+				lib::setColor(baseColor);
+				for (int g = -1; g <= 1; g++) {
+					lib::setCursorPosition(j - 1, i + g);
+					cout << "   ";
+					if (laukas[j - 1][i + g] == 0) laukas[j - 1][i + g] = 4;
+					if (laukas[j][i + g] == 0) laukas[j][i + g] = 4;
+					if (laukas[j + 1][i + g] == 0) laukas[j + 1][i + g] = 4;
+				}
+			}
+			else if (laukas[j][i] == 3) {
+				lib::setColor(spawnColor);
+				for (int g = -1; g <= 1; g++) {
+					lib::setCursorPosition(j - 1, i + g);
+					cout << "   ";
+					if (laukas[j - 1][i + g] == 0) laukas[j - 1][i + g] = 4;
+					if (laukas[j][i + g] == 0) laukas[j][i + g] = 4;
+					if (laukas[j + 1][i + g] == 0) laukas[j + 1][i + g] = 4;
+				}
 			}
 		}
 		cout << endl;
@@ -41,6 +65,8 @@ private:
 	bool desine = false;
 	bool vertikalu = false;
 	bool horizontalu = false;
+	int health = 100;
+	int color = 4;
 public:
 	friend class field;
 	void setXY(int a, int b) {
@@ -76,7 +102,7 @@ public:
 	}
 	void print() {
 		char ch = char(178);
-		lib::setColor(4);
+		lib::setColor(color);
 		lib::setCursorPosition(x, y - 1);
 		cout << ch;
 		lib::setCursorPosition(x - 1, y);
@@ -157,7 +183,7 @@ public:
 			else if ((laukas[x - 1][y] == 1 || laukas[x - 1][y] == 2) && kaire) {	//kaire
 				move(x - 1, y);
 			}
-			else if (laukas[x + 1][y] == 0 || laukas[x - 1][y] == 0) {
+			else if (laukas[x + 1][y] == 4 || laukas[x - 1][y] == 4) {
 				checkVertical();//jeigu nei i kaire, nei i desine negali paeiti einama vertikaliai
 			}
 		}
@@ -168,7 +194,7 @@ public:
 			else if ((laukas[x][y + 1] == 1 || laukas[x][y + 1] == 2 ) && apacia) {	//zemyn
 				move(x, y + 1);
 			}
-			else if (laukas[x][y - 1] == 0 || laukas[x][y + 1] == 0) {
+			else if (laukas[x][y - 1] == 4 || laukas[x][y + 1] == 4) {
 				checkHorizontal();	//jeigu nei i virsu, nei i apacia negali eiti einama horizontaliai
 			}
 		}
@@ -179,13 +205,25 @@ public:
 		pos.X = x; pos.Y = y;
 		return pos;
 	}
+	int damageTaken(int damage) {
+		health -= damage;
+		changeColor();
+		print();
+		return health;
+	}
+	void changeColor() {
+		if (health < 99) color = 12;
+	}
 };
 
 class tower {
 private:
 	int x, y;
-	int damage;
-	int range = 5;
+	int range = 7;
+	bool shoot = true;
+	int rechargeTime = 300;
+	chrono::steady_clock::time_point lastShot;
+	int damage = 2;
 public:
 	void setXY(int a, int b) {
 		x = a; y = b;
@@ -194,18 +232,14 @@ public:
 		lib::setColor(0);
 		for (int i = -1; i <= 1; i++) { 
 			lib::setCursorPosition(x - 1, y + i);
-			for (int j = -1; j <= 1; j++) {
-				cout << " ";
-			}
+			cout << "   ";
+			laukas[x - 1][y + i] = 4;
+			laukas[x][y + i]	 = 4;
+			laukas[x + 1][y + i] = 4;
 		}
 		lib::setColor(1*16);
 		lib::setCursorPosition(x, y);
 		cout << " ";
-	}
-	void place() {//tower pirkimas ir tikrinimas ar ten galima padeti tower
-		while (1) {
-
-		}
 	}
 	int returnRange(){
 		return range;
@@ -215,6 +249,27 @@ public:
 		pos.X = x; pos.Y = y;
 		return pos;
 	}
+	bool returnShoot() {
+		return shoot;
+	}
+	void rechargeShoot() {
+		auto intervalas = std::chrono::duration_cast<std::chrono::milliseconds>(laikas - lastShot);
+		if(intervalas.count() >= rechargeTime) shoot = true;
+	}
+	void changeShoot() {
+		lastShot = chrono::steady_clock::now();
+		shoot = false;
+	}
+	int returnDamage() {
+		return damage;
+	}
+	void placeTower() {
+		COORD pos = lib::getMousePosition();
+		if (pos.X != 0 && pos.Y != 0) {
+			setXY(pos.X, pos.Y);
+			print();
+		}
+	}
 };
 
 class mainGame {
@@ -223,23 +278,35 @@ private:
 	vector<tower> towerVector;
 public:
 	void enemyHit() {
-		while (1) {
-			for (int i = 0; i < towerVector.size(); i++) {
-				COORD towerPos = towerVector[i].returnPosition();
+		for (int i = 0; i < towerVector.size(); i++) {// tikrinami visi tower
+			if (towerVector[i].returnShoot()) {
+				COORD towerPos = towerVector[i].returnPosition();	//paimama tower pozicija ir range
 				int range = towerVector[i].returnRange();
-				for (int j = 0; j < enemyVector.size(); j++) {
+				for (int j = 0; j < enemyVector.size(); j++) {	//tikrinami ar koksnors enemy yra tower range
 					COORD enemyPos = enemyVector[j].position();
-					if ((enemyPos.X <= towerPos.X + range || enemyPos.X >= towerPos.X - range) && (enemyPos.Y <= towerPos.Y + range && enemyPos.Y >= towerPos.Y - range)) {
-						deleteEnemy(j);
+					if ((enemyPos.X <= towerPos.X + range && enemyPos.X >= towerPos.X - range) && (enemyPos.Y <= towerPos.Y + range && enemyPos.Y >= towerPos.Y - range)) {
+							//jei yra tower lauke nuimamos gyvybes arba panaikinamas
+						if (enemyVector[j].damageTaken(towerVector[i].returnDamage())<=0) deleteEnemy(j);
+						towerVector[i].changeShoot();
+						break;
 					}
 				}
-			}
+			} else towerVector[i].rechargeShoot();
 		}
 	}
 	void printBase(){
-		lib::setCursorPosition(baseX, baseY);
 		lib::setColor(baseColor);
-		cout << " ";
+		for (int g = -1; g <= 1; g++) {
+			lib::setCursorPosition(baseX - 1, baseY + g);
+			cout << "   ";
+		}
+	}
+	void printSpawn() {
+		lib::setColor(spawnColor);
+		for (int g = -1; g <= 1; g++) {
+			lib::setCursorPosition(spawnX - 1, spawnY + g);
+			cout << "   ";
+		}
 	}
 	void baseReached(int i) {
 		COORD pos = enemyVector[i].position();
@@ -259,10 +326,32 @@ public:
 		}
 	}
 	void deleteEnemy(int i) {
-	    COORD pos = enemyVector[i].position();
-		enemyVector[i].del();
-		enemyVector.erase(enemyVector.begin() + i);
-		printField(pos.X, pos.Y);
+		if (enemyVector.size() > 0) {
+			COORD pos = enemyVector[i].position();
+			enemyVector[i].del();
+			enemyVector.erase(enemyVector.begin() + i);
+			printField(pos.X, pos.Y);
+		}
+	}
+	void buttonPressed() {
+		char ch = getch();
+		if (ch == '1') {
+			if (checkPlacement()) {
+				tower a;
+				towerVector.push_back(a);
+				towerVector[towerVector.size() - 1].placeTower();
+			}
+		}
+	}
+	bool checkPlacement() {
+		COORD pos = lib::getMousePosition();
+		if (pos.X == 0 && pos.Y == 0) return false;
+		for (int i = -1; i <= 1; i++) {
+			for (int j = -1; j <= 1; j++) {
+				if (laukas[pos.X + j][pos.Y + i] != 0) return false;
+			}
+		}
+		return true;
 	}
 	void start() {
 		lib::setFontSize(16, 16);
@@ -288,26 +377,34 @@ public:
 		towerVector.push_back(a);
 		towerVector[0].setXY(10, 18);
 		towerVector[0].print();
+		towerVector.push_back(a);
+		towerVector[1].setXY(30, 18);
+		towerVector[1].print();
+		towerVector.push_back(a);
+		towerVector[2].setXY(10, 14);
+		towerVector[2].print();
 		printLaukas();
 		createNewEnemy();
 
-		thread (&mainGame::enemyHit, this).detach();
 		int k = 0;
-		while (1) {
-			//gameMenu.checkNoHover();
-			for (int i = 0; i < enemyVector.size(); i++) {
-				enemyVector[i].followPath();
-				baseReached(i);
-				
-			}
-			Sleep(40);
-			k++;
-			if (k == 10) {
-				createNewEnemy();
-				k = 0;
-			}
+	while (1) {
+		printSpawn();
+		laikas = std::chrono::steady_clock::now();
+		for (int i = 0; i < enemyVector.size(); i++) {
+			enemyVector[i].followPath();
+			baseReached(i);
 		}
+		enemyHit();
+		Sleep(40);
+		k++;
+		if (k == 10) {
+			createNewEnemy();
+			k = 0;
+		}
+
+		if (_kbhit()) buttonPressed();
 	}
+}
 	void createNewEnemy() {
 		enemy a;
 		enemyVector.push_back(a);
@@ -601,17 +698,30 @@ sukurti kad enemy vaiksciotu pagal path --- COMPLETE
 path editor  --- complete
 padaryti kad leistu faila issaugoti su pasirinktu pavadinimu --COMPLETE
 padaryti kad leistu uzloadint pasirinka faila is duotu pasirinkimu(tikrintu ar game papkeje kokia yra map failai) -- COMPLETE
-
 padaryti kad judetu keli enemy vienu metu -- COMPLETE
 
-sukurti tower	
-tower saudymas
-tower placinimas
+sukurti tower	--COMPLETE
+tower saudymas--CPMPLETE
+tower placinimas--COMPLETE
+kai nuzudomas priesas, pries mirti pakeisti spalva --COMPLETE
+implementuoti priesams hp	--COMPLETE
+padaryt kad negalima butu placint toweri ant towerio (stackint) ir ant tako -- COMPLETE
+
+delete tower
+money
+health
+
+rounds
+save game
+load game
+
+upgrade
+different enemies
+more towers
+
 
 padaryti kad load map meniu galetu uzkrauti daugiau failu, yra scrollbar kazkoks
-kai nuzudomas priesas, pries mirti pakeisti spalva
-implementuoti priesams hp
-padaryt kad negalima butu placint toweri ant towerio (stackint) ir ant tako
+
 
 */
 

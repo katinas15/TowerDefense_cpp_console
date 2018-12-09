@@ -699,9 +699,8 @@ void menu::create() {
 }
 
 void menu::check() {//tikrinama ar buvo paspausta ar pele uzvesta ant kazkurio is meniu lango
-
+	COORD temp = lib::getMousePosition();	//kai hover pasikeicia spalva
 	for (int r = 0; r < rows; r++) {	//tikrinama ant kurio lango uzvesta
-		COORD temp = lib::getMousePosition();	//kai hover pasikeicia spalva
 		if (temp.X > object[r].topLeftX && temp.Y > object[r].topLeftY && object[r].bottomRightX > temp.X && object[r].bottomRightY > temp.Y) {
 			int invertedColor = 255 - color;
 			lib::setColor(invertedColor);
@@ -738,12 +737,10 @@ void menu::check() {//tikrinama ar buvo paspausta ar pele uzvesta ant kazkurio i
 }
 
 void menu::checkNoHover() {//tikrinama ar buvo paspausta ar pele uzvesta ant kazkurio is meniu lango
-
-	for (int r = 0; r < rows; r++) {	//tikrinama ant kurio lango uzvesta
+	if (lib::mouseLeftClick()) {
 		COORD temp = lib::getMousePosition();	//kai hover pasikeicia spalva
-		if (temp.X > object[r].topLeftX && temp.Y > object[r].topLeftY && object[r].bottomRightX > temp.X && object[r].bottomRightY > temp.Y) {
-			if (lib::mouseLeftClick()) {
-
+		for (int r = 0; r < rows; r++) {	//tikrinama ant kurio lango uzvesta
+			if (temp.X > object[r].topLeftX && temp.Y > object[r].topLeftY && object[r].bottomRightX > temp.X && object[r].bottomRightY > temp.Y) {
 				lib::setColor(color);
 				for (int i = 1; i < height; i++) {
 					lib::setCursorPosition(object[lastRow].topLeftX + 1, object[lastRow].topLeftY + i);
