@@ -391,11 +391,13 @@ public:
 		}
 	}
 	void baseReached(int i) { // tikrina ar baze pasiekta, jei taip - sunaikina priesa, perpiesia baze, nuima zaidejo hp
-		COORD pos = enemyVector[i].position();
-		if (pos.X == baseX && pos.Y == baseY) {
-			deleteEnemy(i);
-			printBase();
-			playerHealth -= enemyVector[i].getDamageDealt();
+		if (enemyVector.size() > 0) {
+			COORD pos = enemyVector[i].position();
+			if (pos.X == baseX && pos.Y == baseY) {
+				playerHealth -= enemyVector[i].getDamageDealt();
+				deleteEnemy(i);
+				printBase();
+			}
 		}
 	}
 	void printField(int x,int y) {//kai enemy mirsta ikvieciama sita funkcija, enemy istrinamas nuo consoles lango
@@ -852,7 +854,9 @@ money -- COMPLETE
 health	-- COMPLETE
 delete tower -- COMPLEtE
 
-rounds
+rounds -- COMPLETE
+game end
+
 save game
 load game
 
