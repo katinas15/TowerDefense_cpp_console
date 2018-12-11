@@ -13,11 +13,14 @@ int baseX = 2, baseY = 2;
 int pathColor = 6 * 16;
 int baseColor = 5 * 16;
 int spawnColor = 0;
-int playerHealth = 100;
+int playerHealth = 1;
 int playerMoney = 1000;
 chrono::steady_clock::time_point laikas;
 
 using namespace std;
+
+void startLevelEditor();
+void startGame();
 
 void printLaukas() {
 
@@ -343,6 +346,266 @@ public:
 		incSleepTime();
 	}
 };
+class levelEditor {
+private:
+	int block;
+	variableText text;
+	int saveColor = 15 + 2 * 16;
+	int messageColor = 3 + 15 * 16;
+	bool editMode;
+	bool saveMode;
+	bool loadMode;
+
+public:
+	void print(int x, int y, int color) {	//paiso teksta nurodytoje pozicijoje
+		lib::setColor(color);
+		lib::setCursorPosition(x, y);
+		cout << " ";
+	}
+	bool check(int x, int y) {
+		if (x < 1 || y < 1 || x > 49 || y > 32) return false;	//tikrina lauko ribas ir jei tinka isveda true/ tikrina ar buvo paspausta pasymo ribose
+		else return true;
+	}
+	void selectedBlock(int a) {//funkcija isveda koks yra siuo menu pasirinktas blokas
+		block = a;
+		langas lang;
+		if (a == 3) {
+			text.set(53, 28, "Spawn point", backgroundColor, 0, true, false);
+			lang.set(56, 30, 1, 1, spawnColor, 0);	//taip pat nurodoma blokelio spalva desineje apacioje
+		}
+		else if (a == 2) {
+			text.set(53, 28, "Base", backgroundColor, 0, true, false);
+			lang.set(56, 30, 1, 1, baseColor, 0);
+		}
+		else if (a == 1) {
+			text.set(53, 28, "Path", backgroundColor, 0, true, false);
+			lang.set(56, 30, 1, 1, pathColor, 0);
+		}
+	}
+	void drawCurrentSession() {	//nupaiso tai kas jau yra editoriuje, skirtas tam kad panaikinti nebereikalingus issokusius meniu
+		lib::setColor(fieldColor);
+		//reikia nutrinti kas pries tai buvo ant ekrano
+		for (int i = 1; i < 33; i++) {
+			lib::setCursorPosition(1, i + 1);
+			for (int j = 1; j < 50; j++) {
+				if (laukas[j][i] == 1) {
+					print(j, i, pathColor);//path block
+				}
+				else if (laukas[j][i] == 2) {//base block
+					print(j, i, baseColor);
+				}
+				else if (laukas[j][i] == 3) {//spawn block
+					print(j, i, spawnColor);
+				}
+				else print(j, i, backgroundColor);
+			}
+		}
+	}
+	void exitEditor() {//iseinama is level editor
+		editMode = false;
+		lib::printText(20, 20, "Loading... ", messageColor);	//koks yra pasirinktas blokas pasako
+		startGame();
+	}
+	void drawBorder() {
+		langas lang;	//level editor remeliai
+		lang.set(0, 0, 50, 33, backgroundColor, 3);
+	}
+	void exitSaveMode() {//iseinama is save lango
+		saveMode = false;
+		lib::printText(20, 20, "Exiting... ", messageColor);	//message
+		Sleep(20);
+		drawCurrentSession();
+	}
+	void saveMapToFile(string file) {//map issaugomas nurodytame faile
+		saveMode = false;
+		if (file.length() > 0) {
+			lib::printText(20, 20, "Saving... ", messageColor);	//message
+			Sleep(20);
+			ofstream fr(file + ".map");
+			for (int i = 0; i < 33; i++) {
+				for (int j = 0; j < 50; j++) {
+					fr << laukas[j][i] << " ";
+				}
+				fr << endl;
+			}
+		}
+	}
+	void saveToFile() {//save langas
+		saveMode = true;//save pradeda veikti
+		string filename;//failo pavadinimas
+		langas save;
+		save.set(14, 15, 30, 8, saveColor, 1);//nupaisomas naujas langas kur parasytas tekstas ir ivedamas failo pavadinimas
+		lib::printText(15, 16, "Enter file name: ", saveColor);	//message
+		lib::printText(15, 17, "ESC - exit ", saveColor);	//message
+		lib::printText(15, 18, "ENTER - save ", saveColor);	//message
+
+		langas textbox;
+		textbox.set(17, 22, 24, 0, backgroundColor, 0);	//vieta kur bus rasomas tekstas
+
+		lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
+
+		lib::setCursorPosition(17 + filename.length(), 22);
+		while (saveMode) {
+			lib::setCursorVisibility(true);//ijungiamas cursor kad matytusi kur rasoma
+			if (kbhit()) {	//tikrina kokia buvo paspausta raide
+				lib::setColor(backgroundColor);
+				int ch = getch();
+				if (ch == '\b' && filename.length() > 0) {	//jei buvo paspausta backspace ta raide istrinama ir string ir lange
+					filename.pop_back();
+					lib::setCursorPosition(17 + filename.length(), 22);
+					cout << " ";
+				}
+				else if (ch == 13) {//jei enter
+					saveMapToFile(filename);
+				}
+				else if (ch == 27 && filename.length() > 0) { //jei escape
+					exitSaveMode();
+				}
+				else if (filename.length() < 25 && ch != 0) {
+					lib::setCursorPosition(17 + filename.length(), 22);
+					filename += char(ch); //paspaustas mygtukas idedamas i string
+					cout << char(ch);	//ir isvedamas konsoleje
+				}
+			}
+		}
+		lib::setCursorVisibility(false);//tada isjungti
+		drawCurrentSession();
+	}
+	void exitLoadMode() {
+		loadMode = false;
+		lib::printText(20, 20, "Exiting... ", messageColor);	//message
+		Sleep(20);
+		drawCurrentSession();
+	}
+	void loadMap() {
+		auto path = std::experimental::filesystem::current_path();//nustatoma dabartine direktorija .map failu radimui
+		vector<string> files = lib::fileTypeInFolder(path.string(), "map");	//randami visi map failai
+		menu mapFiles;	//sukuriamas meniu kad butu galima pasirinkti mapa
+		mapFiles.setXY(15, 10);
+		mapFiles.setWidth(30);
+		mapFiles.setHeight(2);
+		mapFiles.setColor(1 + 16 * 15);
+		mapFiles.setRows(files.size() + 1);
+		mapFiles.setBorder(1);
+		mapFiles.setText(0, "EXIT");
+
+		for (int i = 0; i < files.size(); i++) {
+			mapFiles.setText(i + 1, files[i].substr(path.string().length() + 1, files[i].length() - path.string().length())); //is viso path string atimama nereikalinga dalis ir paliekamas map pavadinimas su .map liekana
+		}
+		mapFiles.create();
+		mapFiles.setFunction(0, bind(&levelEditor::exitLoadMode, this));
+		//priskiriama print funkcija
+		for (int i = 0; i < files.size(); i++) {
+			mapFiles.setFunction(i + 1, bind(&levelEditor::fromFileToMap, this, files[i]));	//nustatoma kad paspaudus ant meniu butu uzkraunamas failas
+		}
+
+		loadMode = true;
+		while (loadMode) {
+			mapFiles.check();
+		}
+		drawCurrentSession();
+	}
+	void fromFileToMap(string filename) {
+		loadMode = false;
+		lib::printText(20, 20, "Loading... ", messageColor);	//message
+		Sleep(20);
+		ifstream df(filename);
+		for (int i = 0; i < 33; i++) {
+			for (int j = 0; j < 50; j++) {
+				df >> laukas[j][i];
+				if (laukas[j][i] == 2) {
+					baseX = j;
+					baseY = i;
+				}
+				else if (laukas[j][i] == 3) {
+					spawnX = j;
+					spawnY = i;
+				}
+			}
+		}
+	}
+	void clearAll() {
+		for (int i = 0; i < 33; i++) {
+			for (int j = 0; j < 50; j++) {
+				laukas[j][i] = 0;
+			}
+		}
+		drawCurrentSession();
+	}
+	void start() {
+		lib::setFontSize(20, 20);
+		lib::setConsoleResolution(1280, 720);
+		lib::clearscreen(15 * 16);
+		lib::remove_scrollbar();
+		lib::setCursorVisibility(false);
+		lib::printText(52, 26, "Selected: ", backgroundColor);	//koks yra pasirinktas blokas pasako
+		textField rightclick;
+		rightclick.set(50, 20, 15, 4, 1 + 15 * 16, 0, "Right-click to delete block!");
+		drawBorder();
+
+		menu edit;	//level editor pasirinkimu meniu
+		edit.setText(0, "Spawn point");
+		edit.setText(1, "Base");
+		edit.setText(2, "Path");
+		edit.setText(3, "Save map");
+		edit.setText(4, "Load map");
+		edit.setText(5, "Start game");
+		edit.setText(6, "Main menu");
+		edit.setText(7, "Clear all");
+		edit.set(50, 0, 14, 2, backgroundColor, 8, 3);
+		edit.setFunction(0, bind(&levelEditor::selectedBlock, this, 3));	//paspaudus nusistato norimas blokas
+		edit.setFunction(1, bind(&levelEditor::selectedBlock, this, 2));
+		edit.setFunction(2, bind(&levelEditor::selectedBlock, this, 1));
+		edit.setFunction(3, bind(&levelEditor::saveToFile, this));//atidaroma save funkcija
+		edit.setFunction(4, bind(&levelEditor::loadMap, this));	//parodomi kokie map yra papkeje
+		edit.setFunction(5, bind(&levelEditor::exitEditor, this));	//iseinama is editoriaus
+		edit.setFunction(6, bind(&levelEditor::exitEditor, this));	//iseinama is editoriaus
+		edit.setFunction(7, bind(&levelEditor::clearAll, this));	//iseinama is editoriaus
+
+		editMode = true;
+		while (editMode) { //enemy baze
+			while (lib::mouseEvent() && editMode) {	//jeigu nera jokio mouse event nera reikalo atlkineti veiksmu
+				edit.check();	//tikrina meniu pasirinkimus, ar buvo paspausta ant meniu
+				lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
+				if (lib::mouseLeftClick()) {
+					COORD pos = lib::getMousePosition();
+					if (check(pos.X, pos.Y)) {	//tikrinama ar neuzeina uz ribu
+						if (block == 3) {
+							print(spawnX, spawnY, backgroundColor);	//istrinamas praeitas spawn pointas, nes gali buti tik vienas spawn
+							laukas[spawnX][spawnY] = 0;	//nutrinama reiksme faile
+							laukas[pos.X][pos.Y] = 3;	//nustatoma 3 del failo saugojimo
+							spawnX = pos.X;	//nustatomos naujos spawn koordinates
+							spawnY = pos.Y;
+							print(spawnX, spawnY, spawnColor);	//isvedamas
+						}
+						if (block == 1) {
+							COORD pos = lib::getMousePosition();
+							if (check(pos.X, pos.Y)) {
+								laukas[pos.X][pos.Y] = 1;
+								print(pos.X, pos.Y, pathColor);
+							}
+						}
+						if (block == 2) {
+							print(baseX, baseY, backgroundColor);	//gali buti tik viena baze
+							laukas[baseX][baseY] = 0;
+							laukas[pos.X][pos.Y] = 2;
+							baseX = pos.X;
+							baseY = pos.Y;
+							print(baseX, baseY, baseColor);
+						}
+					}
+				}
+				if (lib::mouseRightClick()) {	//rightclick istrina bloka
+					COORD pos = lib::getMousePosition();
+					if (check(pos.X, pos.Y)) {
+						laukas[pos.X][pos.Y] = 0;
+						print(pos.X, pos.Y, backgroundColor);
+					}
+				}
+			}
+		}
+	}
+};
 
 class mainGame {
 private:
@@ -368,6 +631,7 @@ public:
 						if (enemyVector[j].damageTaken(towerVector[i].returnDamage()) <= 0) { //tikrinama ar prieso gyvybes 0 ar maziau
 							playerMoney += enemyVector[j].getGold();  //prideda zaidejui golda uz sunaikinta priesa
 							deleteEnemy(j);	//istrina priesa
+							totalEnemiesDefeated++;
 						}
 						towerVector[i].changeShoot();//nustatoma kad kazkuri laika negaletu tower sauti
 						break;
@@ -399,6 +663,22 @@ public:
 				printBase();
 			}
 		}
+		if (playerHealth <= 0) {
+			gameEnd();
+		}
+	}
+	void gameEnd() {
+		textField gg;
+		gg.set(15, 15, 23, 4, baseColor, 2, "GAME OVER, PRESS ESC TO CONTINUE...");
+		while (1) {
+			if (_kbhit()) {
+				int ch = getch();
+				if (ch == 27) { //jei escape
+					startLevelEditor();
+					break;
+				}
+			}
+		}
 	}
 	void printField(int x,int y) {//kai enemy mirsta ikvieciama sita funkcija, enemy istrinamas nuo consoles lango
 		lib::setCursorPosition(x, y);
@@ -417,7 +697,6 @@ public:
 			enemyVector.erase(enemyVector.begin() + i);
 			printField(pos.X, pos.Y);
 		}
-		totalEnemiesDefeated++;
 	}
 	void buttonPressed() {// tikrina koks buvo paspaustas mygtukas
 		char ch = getch();
@@ -509,7 +788,6 @@ public:
 		drawBorder();
 		printLaukas();
 		printSpawn();
-
 		
 		money.setXY(53, 30);
 		money.set(53, 30, "Money: ", 1 + 15 * 16, playerMoney, true, true);
@@ -519,7 +797,6 @@ public:
 		enemies.set(53, 36, "Enemies Defeated: ", 1 + 15 * 16, totalEnemiesDefeated, true, true);
 		currentRound.setXY(53, 39);
 		currentRound.set(53, 39, "Round: ", 1 + 15 * 16, round.returnRounds(), true, true);
-
 		
 	while (1) {
 		freezeTime();
@@ -559,281 +836,30 @@ public:
 		lang.set(0, 0, 51, 34, backgroundColor, 3);
 	}
 };
-void startGame() {
-	mainGame a;
-	a.start();
-}
-class levelEditor{
-private:
-	int block;	
-	variableText text;
-	int saveColor = 15 + 2 * 16;
-	int messageColor = 3 + 15 * 16;
-	bool editMode;
-	bool saveMode;
-	bool loadMode;
 
-public:
-	void print(int x,int y, int color) {	//paiso teksta nurodytoje pozicijoje
-		lib::setColor(color);
-		lib::setCursorPosition(x, y);
-		cout << " ";
-	}
-	bool check(int x, int y) {
-		if (x < 1 || y < 1 || x > 49 || y > 32) return false;	//tikrina lauko ribas ir jei tinka isveda true/ tikrina ar buvo paspausta pasymo ribose
-		else return true;
-	}
-	void selectedBlock(int a) {//funkcija isveda koks yra siuo menu pasirinktas blokas
-		block = a;
-		langas lang;
-		if (a == 3) {		
-			text.set(53, 28, "Spawn point", backgroundColor, 0, true, false);
-			lang.set(56, 30, 1, 1, spawnColor, 0);	//taip pat nurodoma blokelio spalva desineje apacioje
-		}
-		else if (a == 2) {
-			text.set(53, 28, "Base", backgroundColor, 0, true, false);
-			lang.set(56, 30, 1, 1, baseColor, 0);
-		}
-		else if (a == 1) {
-			text.set(53, 28, "Path", backgroundColor, 0, true, false);
-			lang.set(56, 30, 1, 1, pathColor, 0);
-		}
-	}
-	void drawCurrentSession() {	//nupaiso tai kas jau yra editoriuje, skirtas tam kad panaikinti nebereikalingus issokusius meniu
-		lib::setColor(fieldColor);
-		//reikia nutrinti kas pries tai buvo ant ekrano
-		for (int i = 1; i < 33; i++) {
-			lib::setCursorPosition(1, i + 1);
-			for (int j = 1; j < 50; j++) {
-				if (laukas[j][i] == 1) {
-					print(j, i, pathColor);//path block
-				}
-				else if (laukas[j][i] == 2) {//base block
-					print(j, i, baseColor);
-				}
-				else if (laukas[j][i] == 3) {//spawn block
-					print(j, i, spawnColor);
-				}
-				else print(j, i, backgroundColor);
-			}
-		}
-	}
-	void exitEditor() {//iseinama is level editor
-		editMode = false;
-		lib::printText(20, 20, "Loading... ", messageColor);	//koks yra pasirinktas blokas pasako
-		startGame();
-	}
-	void drawBorder() {
-		langas lang;	//level editor remeliai
-		lang.set(0, 0, 50, 33, backgroundColor, 3);
-	}
-	void exitSaveMode() {//iseinama is save lango
-		saveMode = false;
-		lib::printText(20, 20, "Exiting... ", messageColor);	//message
-		Sleep(20);
-		drawCurrentSession();
-	}
-	void saveMapToFile(string file) {//map issaugomas nurodytame faile
-		saveMode = false;
-		if (file.length() > 0) {
-			lib::printText(20, 20, "Saving... ", messageColor);	//message
-			Sleep(20);
-			ofstream fr(file + ".map");
-			for (int i = 0; i < 33; i++) {
-				for (int j = 0; j < 50; j++) {
-					fr << laukas[j][i] << " ";
-				}
-				fr << endl;
-			}
-		}
-	}
-	void saveToFile() {//save langas
-		saveMode = true;//save pradeda veikti
-		string filename;//failo pavadinimas
-		langas save;
-		save.set(14, 15, 30, 8, saveColor, 1);//nupaisomas naujas langas kur parasytas tekstas ir ivedamas failo pavadinimas
-		lib::printText(15, 16, "Enter file name: ", saveColor);	//message
-		lib::printText(15, 17, "ESC - exit ", saveColor);	//message
-		lib::printText(15, 18, "ENTER - save ", saveColor);	//message
-
-		langas textbox;
-		textbox.set(17,22,24,0,backgroundColor,0);	//vieta kur bus rasomas tekstas
-
-		lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
-		
-		lib::setCursorPosition(17 + filename.length(), 22);
-		while (saveMode) {
-			lib::setCursorVisibility(true);//ijungiamas cursor kad matytusi kur rasoma
-			if (kbhit()) {	//tikrina kokia buvo paspausta raide
-				lib::setColor(backgroundColor);
-				int ch = getch();
-				if (ch == '\b' && filename.length() > 0) {	//jei buvo paspausta backspace ta raide istrinama ir string ir lange
-					filename.pop_back();
-					lib::setCursorPosition(17 + filename.length(), 22);
-					cout << " ";
-				}
-				else if (ch == 13) {//jei enter
-					saveMapToFile(filename);
-				}
-				else if (ch == 27 && filename.length() > 0) { //jei escape
-					exitSaveMode();
-				}
-				else if (filename.length() < 25 && ch != 0) {
-					lib::setCursorPosition(17 + filename.length(), 22);
-					filename += char(ch); //paspaustas mygtukas idedamas i string
-					cout << char(ch);	//ir isvedamas konsoleje
-				}
-			}
-		}
-		lib::setCursorVisibility(false);//tada isjungti
-		drawCurrentSession();
-	}
-	void exitLoadMode() {
-		loadMode = false;
-		lib::printText(20, 20, "Exiting... ", messageColor);	//message
-		Sleep(20);
-		drawCurrentSession();
-	}
-	void loadMap() {
-		auto path = std::experimental::filesystem::current_path();//nustatoma dabartine direktorija .map failu radimui
-		vector<string> files = lib::fileTypeInFolder(path.string(), "map");	//randami visi map failai
-		menu mapFiles;	//sukuriamas meniu kad butu galima pasirinkti mapa
-		mapFiles.setXY(15, 10);
-		mapFiles.setWidth(30);
-		mapFiles.setHeight(2);
-		mapFiles.setColor(1 + 16 * 15);
-		mapFiles.setRows(files.size() + 1);
-		mapFiles.setBorder(1);
-		mapFiles.setText(0, "EXIT");
-
-		for (int i = 0; i < files.size(); i++) {
-			mapFiles.setText(i + 1, files[i].substr(path.string().length() + 1, files[i].length() - path.string().length())); //is viso path string atimama nereikalinga dalis ir paliekamas map pavadinimas su .map liekana
-		}
-		mapFiles.create();
-		mapFiles.setFunction(0, bind(&levelEditor::exitLoadMode, this));
-		//priskiriama print funkcija
-		for (int i = 0; i < files.size(); i++) {
-			mapFiles.setFunction(i + 1, bind(&levelEditor::fromFileToMap, this, files[i]));	//nustatoma kad paspaudus ant meniu butu uzkraunamas failas
-		}
-
-		loadMode = true;
-		while (loadMode) {
-			mapFiles.check();
-		}
-		drawCurrentSession();
-	}
-	void fromFileToMap(string filename){
-		loadMode = false;
-		lib::printText(20, 20, "Loading... ", messageColor);	//message
-		Sleep(20);
-		ifstream df(filename);
-		for (int i = 0; i < 33; i++) {
-			for (int j = 0; j < 50; j++) {
-				df >> laukas[j][i];
-				if (laukas[j][i] == 2) {
-					baseX = j;
-					baseY = i;
-				} else if (laukas[j][i] == 3) {
-					spawnX = j;
-					spawnY = i;
-				}
-			}
-		}
-	}
-	void clearAll() {
-		for (int i = 0; i < 33; i++) {
-			for (int j = 0; j < 50; j++) {
-				laukas[j][i] = 0;
-			}
-		}
-		drawCurrentSession();
-	}
-	void start() {
-		lib::setFontSize(20, 20);
-		lib::setConsoleResolution(1280, 720);
-		lib::clearscreen(15 * 16);
-		lib::remove_scrollbar();
-		lib::setCursorVisibility(false);
-		lib::printText(52, 26, "Selected: ", backgroundColor);	//koks yra pasirinktas blokas pasako
-		textField rightclick;
-		rightclick.set(50, 20, 15, 4, 1 + 15 * 16, 0, "Right-click to delete block!");
-		drawBorder();
-
-		menu edit;	//level editor pasirinkimu meniu
-		edit.setText(0, "Spawn point");
-		edit.setText(1, "Base");
-		edit.setText(2, "Path");
-		edit.setText(3, "Save map");
-		edit.setText(4, "Load map");
-		edit.setText(5, "Start game");
-		edit.setText(6, "Main menu");
-		edit.setText(7, "Clear all");
-		edit.set(50, 0, 14, 2, backgroundColor,8, 3);
-		edit.setFunction(0, bind(&levelEditor::selectedBlock, this, 3));	//paspaudus nusistato norimas blokas
-		edit.setFunction(1, bind(&levelEditor::selectedBlock, this, 2));
-		edit.setFunction(2, bind(&levelEditor::selectedBlock, this, 1));
-		edit.setFunction(3, bind(&levelEditor::saveToFile, this));//atidaroma save funkcija
-		edit.setFunction(4, bind(&levelEditor::loadMap, this));	//parodomi kokie map yra papkeje
-		edit.setFunction(5, bind(&levelEditor::exitEditor, this));	//iseinama is editoriaus
-		edit.setFunction(6, bind(&levelEditor::exitEditor, this));	//iseinama is editoriaus
-		edit.setFunction(7, bind(&levelEditor::clearAll, this));	//iseinama is editoriaus
-
-		editMode = true;
-		while (editMode) { //enemy baze
-			while (lib::mouseEvent() && editMode) {	//jeigu nera jokio mouse event nera reikalo atlkineti veiksmu
-				edit.check();	//tikrina meniu pasirinkimus, ar buvo paspausta ant meniu
-				lib::printText(0, 0, " ", 0); //glitch kaireje virsuj, pokolkas vienintelis budas kaip tai ispresti
-				if (lib::mouseLeftClick()) {
-					COORD pos = lib::getMousePosition();
-					if (check(pos.X, pos.Y)) {	//tikrinama ar neuzeina uz ribu
-						if (block == 3) {
-							print(spawnX, spawnY, backgroundColor);	//istrinamas praeitas spawn pointas, nes gali buti tik vienas spawn
-							laukas[spawnX][spawnY] = 0;	//nutrinama reiksme faile
-							laukas[pos.X][pos.Y] = 3;	//nustatoma 3 del failo saugojimo
-							spawnX = pos.X;	//nustatomos naujos spawn koordinates
-							spawnY = pos.Y;
-							print(spawnX, spawnY, spawnColor);	//isvedamas
-						}
-						if (block == 1) {
-							COORD pos = lib::getMousePosition();
-							if (check(pos.X, pos.Y)) {
-								laukas[pos.X][pos.Y] = 1;
-								print(pos.X, pos.Y, pathColor);
-							}
-						}
-						if (block == 2) {
-							print(baseX, baseY, backgroundColor);	//gali buti tik viena baze
-							laukas[baseX][baseY] = 0;
-							laukas[pos.X][pos.Y] = 2;
-							baseX = pos.X;
-							baseY = pos.Y;
-							print(baseX, baseY, baseColor);
-						}
-					}
-				}
-				if (lib::mouseRightClick()) {	//rightclick istrina bloka
-					COORD pos = lib::getMousePosition();
-					if (check(pos.X, pos.Y)) {
-						laukas[pos.X][pos.Y] = 0;
-						print(pos.X, pos.Y, backgroundColor);
-					}
-				}
-			}
-		}
-	}	
-};
+levelEditor editor;
+mainGame game;
 
 int main()
 {
 	ios_base::sync_with_stdio(false);//pagreitina isvedima
 	cin.tie(NULL);
-	
-	levelEditor f;
-	f.start();
+
+	levelEditor t;
+	t.start();
+	startLevelEditor();
 
 	getchar();
 
 	return 0;
+}
+
+void startLevelEditor() {
+	editor.start();
+}
+
+void startGame() {
+	game.start();
 }
 /*
 enemy judejimas  --- COMPLETE
@@ -855,7 +881,9 @@ health	-- COMPLETE
 delete tower -- COMPLEtE
 
 rounds -- COMPLETE
-game end
+game end -- COMPLETE
+
+GAME OVER ERROR
 
 save game
 load game
