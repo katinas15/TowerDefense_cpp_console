@@ -13,9 +13,9 @@ int baseX = 2, baseY = 2;
 int pathColor = 6 * 16;
 int baseColor = 5 * 16;
 int spawnColor = 0;
-int basePlayerHealth = 10000;
+int basePlayerHealth = 10;
 int playerHealth = basePlayerHealth;
-int basePlayerMoney = 1000;
+int basePlayerMoney = 100;
 int playerMoney = basePlayerMoney;
 chrono::steady_clock::time_point laikas;
 
@@ -542,7 +542,7 @@ private:
 	int roundNumber = 1;
 	int spawnRate = 35;
 	int sleepTime = 40;
-	int roundFreezeTime = 1;
+	int roundFreezeTime = 5;
 public:
 	void increaseNumberOfEnemies() {
 		numberOfEnemies *= 2;
@@ -551,11 +551,11 @@ public:
 		roundNumber++;
 	}
 	void incSpawnRate() {
-		if (spawnRate > 8) spawnRate -= 7;
+		if (spawnRate > 5) spawnRate -= 4;
 		else spawnRate = 1;
 	}
 	void incSleepTime() {
-		if (sleepTime > 10) sleepTime -= 9;
+		if (sleepTime > 4) sleepTime -= 3;
 		else sleepTime = 1;
 	}
 	int returnNumberOfEnemies() {
@@ -584,7 +584,7 @@ public:
 		roundNumber = 1;
 		spawnRate = 35;
 		sleepTime = 40;
-		roundFreezeTime = 1;
+		roundFreezeTime = 5;
 	}
 };
 class mainGame {
@@ -750,7 +750,7 @@ public:
 		auto freezeLaikas = std::chrono::steady_clock::now();	//nustatomas dabartinis laikas
 		auto intervalas = std::chrono::duration_cast<std::chrono::seconds>(laikas - freezeLaikas);
 		int t = 0;
-		while (intervalas.count() <= round.returnFreezeTime()) {
+		while ( (intervalas.count() <= round.returnFreezeTime()) && playGame) {
 
 			intervalas = std::chrono::duration_cast<std::chrono::seconds>(laikas - freezeLaikas);
 			laikas = std::chrono::steady_clock::now();	//nustatomas dabartinis laikas
@@ -821,7 +821,7 @@ public:
 			enemiesCreated = 0;
 			int k = 0;
 			createNewEnemy();
-			while (enemiesCreated < round.returnNumberOfEnemies() || enemyVector.size() > 0) {
+			while ( (enemiesCreated < round.returnNumberOfEnemies() || enemyVector.size() > 0) && playGame) {
 				printStatus();
 				printSpawn();
 
@@ -1243,17 +1243,15 @@ public:
 		edit.setText(3, "Save map");
 		edit.setText(4, "Load map");
 		edit.setText(5, "Start game");
-		edit.setText(6, "Main menu");
-		edit.setText(7, "Clear all");
-		edit.set(50, 0, 14, 2, backgroundColor, 8, 3);
+		edit.setText(6, "Clear all");
+		edit.set(50, 0, 14, 2, backgroundColor, 7, 3);
 		edit.setFunction(0, bind(&levelEditor::selectedBlock, this, 3));	//paspaudus nusistato norimas blokas
 		edit.setFunction(1, bind(&levelEditor::selectedBlock, this, 2));
 		edit.setFunction(2, bind(&levelEditor::selectedBlock, this, 1));
 		edit.setFunction(3, bind(&levelEditor::saveToFile, this));//atidaroma save funkcija
 		edit.setFunction(4, bind(&levelEditor::loadMap, this));	//parodomi kokie map yra papkeje
 		edit.setFunction(5, bind(&levelEditor::startGame, this));	//iseinama is editoriaus
-		edit.setFunction(6, bind(&levelEditor::startGame, this));	//iseinama is editoriaus
-		edit.setFunction(7, bind(&levelEditor::clearAll, this));	//iseinama is editoriaus
+		edit.setFunction(6, bind(&levelEditor::clearAll, this));	//clear viska
 
 		editMode = true;
 		while (editMode) { //enemy baze
@@ -1316,42 +1314,5 @@ void startLevelEditor() {
 	levelEditor editor;
 	editor.start();
 }
-/*
-enemy judejimas  --- COMPLETE
-sukurti kad enemy vaiksciotu pagal path --- COMPLETE
-path editor  --- complete
-padaryti kad leistu faila issaugoti su pasirinktu pavadinimu --COMPLETE
-padaryti kad leistu uzloadint pasirinka faila is duotu pasirinkimu(tikrintu ar game papkeje kokia yra map failai) -- COMPLETE
-padaryti kad judetu keli enemy vienu metu -- COMPLETE
 
-sukurti tower	--COMPLETE
-tower saudymas--CPMPLETE
-tower placinimas--COMPLETE
-kai nuzudomas priesas, pries mirti pakeisti spalva --COMPLETE
-implementuoti priesams hp	--COMPLETE
-padaryt kad negalima butu placint toweri ant towerio (stackint) ir ant tako -- COMPLETE
-
-money -- COMPLETE
-health	-- COMPLETE
-delete tower -- COMPLEtE
-
-rounds -- COMPLETE
-game end -- COMPLETE
-
-GAME OVER -- ERROR -- COMPLETE
-
-save game -- COMPLETE
-load game -- COMPLETE
-
-upgrade
-different enemies -- COMPLETE
-more towers	-- COMPLETE
-
-bruksnys neaisku del ko	--COMPLETE
-blokas prie money del text variable -- COMPLETE
-
-padaryti kad load map meniu galetu uzkrauti daugiau failu, yra scrollbar kazkoks
-
-
-*/
 
