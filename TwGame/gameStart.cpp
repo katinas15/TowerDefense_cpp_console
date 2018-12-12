@@ -13,14 +13,15 @@ int baseX = 2, baseY = 2;
 int pathColor = 6 * 16;
 int baseColor = 5 * 16;
 int spawnColor = 0;
-int playerHealth = 1;
-int playerMoney = 1000;
+int basePlayerHealth = 10000;
+int playerHealth = basePlayerHealth;
+int basePlayerMoney = 1000;
+int playerMoney = basePlayerMoney;
 chrono::steady_clock::time_point laikas;
 
 using namespace std;
 
 void startLevelEditor();
-void startGame();
 
 void printLaukas() {
 
@@ -230,6 +231,7 @@ public:
 	}
 };
 
+
 class tower {
 private:
 	int x, y;
@@ -239,12 +241,14 @@ private:
 	chrono::steady_clock::time_point lastShot;
 	int damage = 2;
 	int towerCost = 10;
+	int borderColor = 0;
+	int centerColor = 1 * 16;
 public:
 	void setXY(int a, int b) {
 		x = a; y = b;
 	}
 	void print() {	//isprintinamas tower ir nustatoma lauko reiksme i 4 tam kad poto butu galima tikrinti ar galima toje vietoje statyti kita tower
-		lib::setColor(0);
+		lib::setColor(borderColor);
 		for (int i = -1; i <= 1; i++) { 
 			lib::setCursorPosition(x - 1, y + i);
 			cout << "   ";
@@ -252,7 +256,7 @@ public:
 			laukas[x][y + i]	 = 4;
 			laukas[x + 1][y + i] = 4;
 		}
-		lib::setColor(1*16);
+		lib::setColor(centerColor);
 		lib::setCursorPosition(x, y);
 		cout << " ";
 	}
@@ -301,10 +305,48 @@ public:
 		}
 	}
 };
-
+class closeRange : public tower {
+private:
+	int x, y;
+	int range = 3;
+	bool shoot = true;
+	int rechargeTime = 200;
+	chrono::steady_clock::time_point lastShot;
+	int damage = 3;
+	int towerCost = 20;
+	int borderColor = 1 * 16;
+	int centerColor = 0;
+public:
+	void print() {	//isprintinamas tower ir nustatoma lauko reiksme i 4 tam kad poto butu galima tikrinti ar galima toje vietoje statyti kita tower
+		lib::setColor(borderColor);
+		for (int i = -1; i <= 1; i++) {
+			lib::setCursorPosition(x - 1, y + i);
+			cout << "   ";
+			laukas[x - 1][y + i] = 4;
+			laukas[x][y + i] = 4;
+			laukas[x + 1][y + i] = 4;
+		}
+		lib::setColor(centerColor);
+		lib::setCursorPosition(x, y);
+		cout << " ";
+	}
+	void placeTower() { // padeda toweri su 1 (!) mygtuku
+		if (playerMoney >= towerCost) {
+			COORD pos = lib::getMousePosition();
+			if (pos.X != 0 && pos.Y != 0) {//tikrina ar pos nelygu 0 nes yra glitch kad jeigu nejudini mouse ir prasai pozicijos grazina 0,0
+				setXY(pos.X, pos.Y);
+				print();
+				playerMoney -= towerCost;
+			}
+		}
+		else {
+			lib::printText(1, 36, "Gold stocks are too low sire", 4);	//jei truksta pinigu isvedamas message
+		}
+	}
+};
 class rounds {
 private:
-	int numberOfEnemies = 5;
+	int numberOfEnemies = 1;
 	int roundNumber = 1;
 	int spawnRate = 35;
 	int sleepTime = 40;
@@ -317,11 +359,11 @@ public:
 		roundNumber++;
 	}
 	void incSpawnRate() {
-		if(spawnRate > 3) spawnRate -= 7;
+		if(spawnRate > 8) spawnRate -= 7;
 		else spawnRate = 1;
 	}
 	void incSleepTime() {
-		if (sleepTime > 1) sleepTime -= 9;
+		if (sleepTime > 10) sleepTime -= 9;
 		else sleepTime = 1;
 	}
 	int returnNumberOfEnemies(){
@@ -344,6 +386,254 @@ public:
 		incRounds();
 		incSpawnRate();
 		incSleepTime();
+	}
+	void reset() {
+		numberOfEnemies = 1;
+		roundNumber = 1;
+		spawnRate = 35;
+		sleepTime = 40;
+		roundFreezeTime = 1;
+	}
+};
+
+class mainGame {
+private:
+	vector<enemy> enemyVector;
+	vector<tower> towerVector;
+	rounds round;
+	variableText money;
+	variableText health;
+	variableText enemies;
+	variableText currentRound;
+	int	enemiesCreated = 0;
+	int totalEnemiesDefeated = 0;
+	bool playGame = true;
+public:
+	void enemyHit() {
+		for (int i = 0; i < towerVector.size(); i++) {// tikrinami visi tower
+			if (towerVector[i].returnShoot()) {
+				COORD towerPos = towerVector[i].returnPosition();	//paimama tower pozicija ir range
+				int range = towerVector[i].returnRange();	// nustatomas tower'io saudymo nuotolis
+				for (int j = 0; j < enemyVector.size(); j++) {	//tikrinami ar koksnors enemy yra tower range
+					COORD enemyPos = enemyVector[j].position();
+					if ((enemyPos.X <= towerPos.X + range && enemyPos.X >= towerPos.X - range) && (enemyPos.Y <= towerPos.Y + range && enemyPos.Y >= towerPos.Y - range)) {
+							//jei yra tower lauke nuimamos gyvybes arba panaikinamas
+						if (enemyVector[j].damageTaken(towerVector[i].returnDamage()) <= 0) { //tikrinama ar prieso gyvybes 0 ar maziau
+							playerMoney += enemyVector[j].getGold();  //prideda zaidejui golda uz sunaikinta priesa
+							deleteEnemy(j);	//istrina priesa
+							totalEnemiesDefeated++;
+						}
+						towerVector[i].changeShoot();//nustatoma kad kazkuri laika negaletu tower sauti
+						break;
+					}
+				}
+			} else towerVector[i].rechargeShoot();//tikrinama ar jau gali tower sauti, jei gali shoot == true
+		}
+	}
+	void printBase(){ //isprintinama baze
+		lib::setColor(baseColor);
+		for (int g = -1; g <= 1; g++) {
+			lib::setCursorPosition(baseX - 1, baseY + g);
+			cout << "   ";
+		}
+	}
+	void printSpawn() { //isprintina spawn
+		lib::setColor(spawnColor);
+		for (int g = -1; g <= 1; g++) {
+			lib::setCursorPosition(spawnX - 1, spawnY + g);
+			cout << "   ";
+		}
+	}
+	void baseReached(int i) { // tikrina ar baze pasiekta, jei taip - sunaikina priesa, perpiesia baze, nuima zaidejo hp
+		if (enemyVector.size() > 0) {
+			COORD pos = enemyVector[i].position();
+			if (pos.X == baseX && pos.Y == baseY) {
+				playerHealth -= enemyVector[i].getDamageDealt();
+				deleteEnemy(i);
+				printBase();
+			}
+		}
+		if (playerHealth <= 0) {
+			gameEnd();
+		}
+	}
+	void gameEnd() {
+		textField gg;
+		gg.set(15, 15, 23, 4, baseColor, 2, "GAME OVER, PRESS ESC TO CONTINUE...");
+		while (playGame) {
+			if (_kbhit()) {
+				int ch = getch();
+				if (ch == 27) { //jei escape
+					playGame = false;
+					enemiesCreated = round.returnNumberOfEnemies() + 1;
+					enemyVector.clear();
+					towerVector.clear();
+				}
+			}
+		}
+	}
+	void printField(int x,int y) {//kai enemy mirsta ikvieciama sita funkcija, enemy istrinamas nuo consoles lango
+		lib::setCursorPosition(x, y);
+		lib::setColor(pathColor);
+		for (int i = -1; i <= 1; i++) {
+			lib::setCursorPosition(x - 1, y + i);
+			for (int j = -1; j <= 1; j++) {
+				cout << " ";
+			}
+		}
+	}
+	void deleteEnemy(int i) { //istrina priesa – konsolej, vektoriuje
+		if (enemyVector.size() > 0) {
+			COORD pos = enemyVector[i].position();
+			enemyVector[i].del();
+			enemyVector.erase(enemyVector.begin() + i);
+			printField(pos.X, pos.Y);
+		}
+	}
+	void buttonPressed() {// tikrina koks buvo paspaustas mygtukas
+		char ch = getch();
+		if (ch == '1') {	//jei paspaustas 1, tai nuperkamas tower
+			if (checkPlacement()) {//tikrina ar toje vietoje gali buti padetas tower
+				tower a;
+				towerVector.push_back(a);
+				towerVector[towerVector.size() - 1].placeTower();
+			}
+		}
+		else if (ch == '0') {	//jei paspaustas 1, tai nuperkamas tower
+				destroyTower();
+		}
+		else if (ch == '2') {	//jei paspaustas 1, tai nuperkamas tower
+			if (checkPlacement()) {//tikrina ar toje vietoje gali buti padetas tower
+				closeRange a;
+				towerVector.push_back(a);
+				towerVector[towerVector.size() - 1].placeTower();
+			}
+		}
+	}
+	void destroyTower() {
+		COORD mousePos = lib::getMousePosition();
+		for (int i = 0; i < towerVector.size(); i++) {
+			COORD towerPos = towerVector[i].returnPosition();
+			if (mousePos.X == towerPos.X && mousePos.Y == towerPos.Y) {
+				towerVector[i].del();
+				towerVector.erase(towerVector.begin() + i);
+			}
+		}
+	}
+	bool checkPlacement() { //tikrinama ar galima pa'place'int tower'i
+		COORD pos = lib::getMousePosition();
+		if (pos.X == 0 && pos.Y == 0) return false;
+		for (int i = -1; i <= 1; i++) {
+			for (int j = -1; j <= 1; j++) {
+				if (laukas[pos.X + j][pos.Y + i] != 0) return false;
+			}
+		}
+		return true;
+	}
+	void freezeTime() {
+		variableText freezeTime;
+		freezeTime.setXY(5, 38);
+		laikas = std::chrono::steady_clock::now();	//nustatomas dabartinis laikas
+		auto freezeLaikas = std::chrono::steady_clock::now();	//nustatomas dabartinis laikas
+		auto intervalas = std::chrono::duration_cast<std::chrono::seconds>(laikas - freezeLaikas);
+		int t = 0;
+		while (intervalas.count() <= round.returnFreezeTime()) {
+			
+			intervalas = std::chrono::duration_cast<std::chrono::seconds>(laikas - freezeLaikas);
+			laikas = std::chrono::steady_clock::now();	//nustatomas dabartinis laikas
+
+			if (intervalas.count() > t) {
+				freezeTime.set(0, 38, "Time Until Next Round: ", 1 + 15 * 16, round.returnFreezeTime() - intervalas.count(), true, true);
+				t++;
+			}
+
+			if (_kbhit()) {
+				buttonPressed();	//tikrinam ar buvo paspaustas koksnors mygtukas
+				printStatus();
+			}
+		}
+		freezeTime.remove();
+	}
+	void printStatus() {
+		money.setVariable(playerMoney);
+		money.create();
+		health.setVariable(playerHealth);
+		health.create();
+		enemies.setVariable(totalEnemiesDefeated);
+		enemies.create();
+		currentRound.setVariable(round.returnRounds());
+		currentRound.create();
+	}
+	void reset() {
+		enemiesCreated = 0;
+		totalEnemiesDefeated = 0;
+		playGame = true;
+		playerHealth = basePlayerHealth;
+		playerMoney = basePlayerMoney;
+		round.reset();
+	}
+	void start() {
+		lib::setFontSize(16, 16);
+		lib::setConsoleResolution(1350, 800);
+		lib::clearscreen(backgroundColor);
+		lib::remove_scrollbar();
+		lib::setCursorVisibility(false);
+
+		reset();
+
+		lib::printText(52, 1, "press 1 - to buy tower | price - 10", backgroundColor);
+		lib::printText(52, 2, "press 0 - to delete tower", backgroundColor);
+		lib::printText(52, 3, "press 9 - to save game", backgroundColor);
+
+		drawBorder();
+		printLaukas();
+		printSpawn();
+		
+		money.setXY(53, 10);
+		money.set(53, 10, "Money: ", 1 + 15 * 16, playerMoney, true, true);
+		health.setXY(53, 11);
+		health.set(53, 11, "Health: ", 1 + 15 * 16, playerHealth, true, true);
+		enemies.setXY(53, 12);
+		enemies.set(53, 12, "Enemies Defeated: ", 1 + 15 * 16, totalEnemiesDefeated, true, true);
+		currentRound.setXY(53, 13);
+		currentRound.set(53, 13, "Round: ", 1 + 15 * 16, round.returnRounds(), true, true);
+		
+	while (playGame) {
+		freezeTime();
+		enemiesCreated = 0;
+		int k = 0;
+		createNewEnemy();
+		while (enemiesCreated < round.returnNumberOfEnemies() || enemyVector.size() > 0) {
+			printStatus();
+			printSpawn();
+
+			laikas = std::chrono::steady_clock::now();	//nustatomas dabartinis laikas
+			for (int i = 0; i < enemyVector.size(); i++) {
+				enemyVector[i].followPath();//kiekvienam enemy liepama paeiti viena pozicija
+				baseReached(i);//tikrinama ar pasieke baze
+			}
+			enemyHit();	//tikrina ar tower pataike i enemy
+			Sleep(round.returnSleepTime());
+			if (k == round.returnSpawnRate() && enemiesCreated < round.returnNumberOfEnemies()) {	//kas 10 paejimu sukuriamas naujas priesas
+				createNewEnemy();
+				k = 0;
+			}
+			k++;
+			if (_kbhit()) buttonPressed();	//tikrinam ar buvo paspaustas koksnors mygtukas
+		}
+		round.increase();
+	}
+}
+	void createNewEnemy() { //sukuria nauja priesa – sukuriamas naujas priesas vektoriuje ir nupaisomas konsoleje
+		enemy a;
+		enemyVector.push_back(a);
+		enemyVector[enemyVector.size() - 1].setXY(spawnX, spawnY);
+		enemyVector[enemyVector.size() - 1].create();
+		enemiesCreated++;
+	}
+	void drawBorder() {
+		langas lang;	//game langas remeliai
+		lang.set(0, 0, 51, 34, backgroundColor, 3);
 	}
 };
 class levelEditor {
@@ -401,10 +691,11 @@ public:
 			}
 		}
 	}
-	void exitEditor() {//iseinama is level editor
+	void startGame() {//iseinama is level editor
 		editMode = false;
 		lib::printText(20, 20, "Loading... ", messageColor);	//koks yra pasirinktas blokas pasako
-		startGame();
+		mainGame game;
+		game.start();
 	}
 	void drawBorder() {
 		langas lang;	//level editor remeliai
@@ -558,8 +849,8 @@ public:
 		edit.setFunction(2, bind(&levelEditor::selectedBlock, this, 1));
 		edit.setFunction(3, bind(&levelEditor::saveToFile, this));//atidaroma save funkcija
 		edit.setFunction(4, bind(&levelEditor::loadMap, this));	//parodomi kokie map yra papkeje
-		edit.setFunction(5, bind(&levelEditor::exitEditor, this));	//iseinama is editoriaus
-		edit.setFunction(6, bind(&levelEditor::exitEditor, this));	//iseinama is editoriaus
+		edit.setFunction(5, bind(&levelEditor::startGame, this));	//iseinama is editoriaus
+		edit.setFunction(6, bind(&levelEditor::startGame, this));	//iseinama is editoriaus
 		edit.setFunction(7, bind(&levelEditor::clearAll, this));	//iseinama is editoriaus
 
 		editMode = true;
@@ -606,248 +897,13 @@ public:
 		}
 	}
 };
-
-class mainGame {
-private:
-	vector<enemy> enemyVector;
-	vector<tower> towerVector;
-	rounds round;
-	variableText money;
-	variableText health;
-	variableText enemies;
-	variableText currentRound;
-	int	enemiesCreated = 0;
-	int totalEnemiesDefeated = 0;
-public:
-	void enemyHit() {
-		for (int i = 0; i < towerVector.size(); i++) {// tikrinami visi tower
-			if (towerVector[i].returnShoot()) {
-				COORD towerPos = towerVector[i].returnPosition();	//paimama tower pozicija ir range
-				int range = towerVector[i].returnRange();	// nustatomas tower'io saudymo nuotolis
-				for (int j = 0; j < enemyVector.size(); j++) {	//tikrinami ar koksnors enemy yra tower range
-					COORD enemyPos = enemyVector[j].position();
-					if ((enemyPos.X <= towerPos.X + range && enemyPos.X >= towerPos.X - range) && (enemyPos.Y <= towerPos.Y + range && enemyPos.Y >= towerPos.Y - range)) {
-							//jei yra tower lauke nuimamos gyvybes arba panaikinamas
-						if (enemyVector[j].damageTaken(towerVector[i].returnDamage()) <= 0) { //tikrinama ar prieso gyvybes 0 ar maziau
-							playerMoney += enemyVector[j].getGold();  //prideda zaidejui golda uz sunaikinta priesa
-							deleteEnemy(j);	//istrina priesa
-							totalEnemiesDefeated++;
-						}
-						towerVector[i].changeShoot();//nustatoma kad kazkuri laika negaletu tower sauti
-						break;
-					}
-				}
-			} else towerVector[i].rechargeShoot();//tikrinama ar jau gali tower sauti, jei gali shoot == true
-		}
-	}
-	void printBase(){ //isprintinama baze
-		lib::setColor(baseColor);
-		for (int g = -1; g <= 1; g++) {
-			lib::setCursorPosition(baseX - 1, baseY + g);
-			cout << "   ";
-		}
-	}
-	void printSpawn() { //isprintina spawn
-		lib::setColor(spawnColor);
-		for (int g = -1; g <= 1; g++) {
-			lib::setCursorPosition(spawnX - 1, spawnY + g);
-			cout << "   ";
-		}
-	}
-	void baseReached(int i) { // tikrina ar baze pasiekta, jei taip - sunaikina priesa, perpiesia baze, nuima zaidejo hp
-		if (enemyVector.size() > 0) {
-			COORD pos = enemyVector[i].position();
-			if (pos.X == baseX && pos.Y == baseY) {
-				playerHealth -= enemyVector[i].getDamageDealt();
-				deleteEnemy(i);
-				printBase();
-			}
-		}
-		if (playerHealth <= 0) {
-			gameEnd();
-		}
-	}
-	void gameEnd() {
-		textField gg;
-		gg.set(15, 15, 23, 4, baseColor, 2, "GAME OVER, PRESS ESC TO CONTINUE...");
-		while (1) {
-			if (_kbhit()) {
-				int ch = getch();
-				if (ch == 27) { //jei escape
-					startLevelEditor();
-					break;
-				}
-			}
-		}
-	}
-	void printField(int x,int y) {//kai enemy mirsta ikvieciama sita funkcija, enemy istrinamas nuo consoles lango
-		lib::setCursorPosition(x, y);
-		lib::setColor(pathColor);
-		for (int i = -1; i <= 1; i++) {
-			lib::setCursorPosition(x - 1, y + i);
-			for (int j = -1; j <= 1; j++) {
-				cout << " ";
-			}
-		}
-	}
-	void deleteEnemy(int i) { //istrina priesa – konsolej, vektoriuje
-		if (enemyVector.size() > 0) {
-			COORD pos = enemyVector[i].position();
-			enemyVector[i].del();
-			enemyVector.erase(enemyVector.begin() + i);
-			printField(pos.X, pos.Y);
-		}
-	}
-	void buttonPressed() {// tikrina koks buvo paspaustas mygtukas
-		char ch = getch();
-		if (ch == '1') {	//jei paspaustas 1, tai nuperkamas tower
-			if (checkPlacement()) {//tikrina ar toje vietoje gali buti padetas tower
-				tower a;
-				towerVector.push_back(a);
-				towerVector[towerVector.size() - 1].placeTower();
-			}
-		}
-		else if (ch == '0') {	//jei paspaustas 1, tai nuperkamas tower
-				destroyTower();
-		}
-	}
-	void destroyTower() {
-		COORD mousePos = lib::getMousePosition();
-		for (int i = 0; i < towerVector.size(); i++) {
-			COORD towerPos = towerVector[i].returnPosition();
-			if (mousePos.X == towerPos.X && mousePos.Y == towerPos.Y) {
-				towerVector[i].del();
-				towerVector.erase(towerVector.begin() + i);
-			}
-		}
-	}
-	bool checkPlacement() { //tikrinama ar galima pa'place'int tower'i
-		COORD pos = lib::getMousePosition();
-		if (pos.X == 0 && pos.Y == 0) return false;
-		for (int i = -1; i <= 1; i++) {
-			for (int j = -1; j <= 1; j++) {
-				if (laukas[pos.X + j][pos.Y + i] != 0) return false;
-			}
-		}
-		return true;
-	}
-	void freezeTime() {
-		variableText freezeTime;
-		freezeTime.setXY(5, 38);
-		laikas = std::chrono::steady_clock::now();	//nustatomas dabartinis laikas
-		auto freezeLaikas = std::chrono::steady_clock::now();	//nustatomas dabartinis laikas
-		auto intervalas = std::chrono::duration_cast<std::chrono::seconds>(laikas - freezeLaikas);
-		int t = 0;
-		while (intervalas.count() <= round.returnFreezeTime()) {
-			
-			intervalas = std::chrono::duration_cast<std::chrono::seconds>(laikas - freezeLaikas);
-			laikas = std::chrono::steady_clock::now();	//nustatomas dabartinis laikas
-
-			if (intervalas.count() > t) {
-				freezeTime.set(0, 38, "Time Until Next Round: ", 1 + 15 * 16, round.returnFreezeTime() - intervalas.count(), true, true);
-				t++;
-			}
-
-			if (_kbhit()) {
-				buttonPressed();	//tikrinam ar buvo paspaustas koksnors mygtukas
-				printStatus();
-			}
-		}
-		freezeTime.remove();
-	}
-	void printStatus() {
-		money.setVariable(playerMoney);
-		money.create();
-		health.setVariable(playerHealth);
-		health.create();
-		enemies.setVariable(totalEnemiesDefeated);
-		enemies.create();
-		currentRound.setVariable(round.returnRounds());
-		currentRound.create();
-	}
-	void start() {
-		lib::setFontSize(16, 16);
-		lib::setConsoleResolution(1300, 800);
-		lib::clearscreen(backgroundColor);
-		lib::remove_scrollbar();
-		lib::setCursorVisibility(false);
-
-		menu gameMenu;	//zaidimo menu esantis meniu
-		gameMenu.setText(0, "Place Tower");
-		gameMenu.setText(1, "Save Game");
-		gameMenu.setText(2, "Load Game");
-		gameMenu.setText(3, "Main Menu");
-		gameMenu.setText(4, "Pause Game");
-		gameMenu.set(51, 0, 14, 4, backgroundColor, 5, 3);
-		gameMenu.setFunction(0, bind(&lib::nothing));	
-		gameMenu.setFunction(1, bind(&lib::nothing));
-		gameMenu.setFunction(2, bind(&lib::nothing));
-		gameMenu.setFunction(3, bind(&lib::nothing));
-		gameMenu.setFunction(4, bind(&lib::nothing));
-
-		drawBorder();
-		printLaukas();
-		printSpawn();
-		
-		money.setXY(53, 30);
-		money.set(53, 30, "Money: ", 1 + 15 * 16, playerMoney, true, true);
-		health.setXY(53, 33);
-		health.set(53, 33, "Health: ", 1 + 15 * 16, playerHealth, true, true);
-		enemies.setXY(53, 36);
-		enemies.set(53, 36, "Enemies Defeated: ", 1 + 15 * 16, totalEnemiesDefeated, true, true);
-		currentRound.setXY(53, 39);
-		currentRound.set(53, 39, "Round: ", 1 + 15 * 16, round.returnRounds(), true, true);
-		
-	while (1) {
-		freezeTime();
-		enemiesCreated = 0;
-		int k = 0;
-		createNewEnemy();
-		while (enemiesCreated < round.returnNumberOfEnemies() || enemyVector.size() > 0) {
-			printStatus();
-			printSpawn();
-
-			laikas = std::chrono::steady_clock::now();	//nustatomas dabartinis laikas
-			for (int i = 0; i < enemyVector.size(); i++) {
-				enemyVector[i].followPath();//kiekvienam enemy liepama paeiti viena pozicija
-				baseReached(i);//tikrinama ar pasieke baze
-			}
-			enemyHit();	//tikrina ar tower pataike i enemy
-			Sleep(round.returnSleepTime());
-			k++;
-			if (k == round.returnSpawnRate() && enemiesCreated < round.returnNumberOfEnemies()) {	//kas 10 paejimu sukuriamas naujas priesas
-				createNewEnemy();
-				k = 0;
-			}
-			if (_kbhit()) buttonPressed();	//tikrinam ar buvo paspaustas koksnors mygtukas
-		}
-		round.increase();
-	}
-}
-	void createNewEnemy() { //sukuria nauja priesa – sukuriamas naujas priesas vektoriuje ir nupaisomas konsoleje
-		enemy a;
-		enemyVector.push_back(a);
-		enemyVector[enemyVector.size() - 1].setXY(spawnX, spawnY);
-		enemyVector[enemyVector.size() - 1].create();
-		enemiesCreated++;
-	}
-	void drawBorder() {
-		langas lang;	//game langas remeliai
-		lang.set(0, 0, 51, 34, backgroundColor, 3);
-	}
-};
-
-levelEditor editor;
-mainGame game;
-
 int main()
 {
 	ios_base::sync_with_stdio(false);//pagreitina isvedima
 	cin.tie(NULL);
-
-	levelEditor t;
-	t.start();
-	startLevelEditor();
+	while (1) {
+		startLevelEditor();
+	}
 
 	getchar();
 
@@ -855,11 +911,8 @@ int main()
 }
 
 void startLevelEditor() {
+	levelEditor editor;
 	editor.start();
-}
-
-void startGame() {
-	game.start();
 }
 /*
 enemy judejimas  --- COMPLETE
@@ -883,7 +936,7 @@ delete tower -- COMPLEtE
 rounds -- COMPLETE
 game end -- COMPLETE
 
-GAME OVER ERROR
+GAME OVER -- ERROR -- COMPLETE
 
 save game
 load game
