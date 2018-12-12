@@ -808,12 +808,6 @@ public:
 		lib::printText(52, 5, "press 9 - to save game", backgroundColor);
 		lib::printText(52, 6, "press ESC - to end game", backgroundColor);
 
-		drawBorder();
-		printLaukas();
-		printSpawn();
-
-		printTowers();
-
 		money.setXY(53, 10);
 		money.set(53, 10, "Money: ", 1 + 15 * 16, playerMoney, true, true);
 		health.setXY(53, 11);
@@ -822,6 +816,8 @@ public:
 		enemies.set(53, 12, "Enemies Defeated: ", 1 + 15 * 16, totalEnemiesDefeated, true, true);
 		currentRound.setXY(53, 13);
 		currentRound.set(53, 13, "Round: ", 1 + 15 * 16, round.returnRounds(), true, true);
+
+		drawCurrentSession();
 
 		while (playGame) {
 			freezeTime();
@@ -1347,8 +1343,8 @@ game end -- COMPLETE
 
 GAME OVER -- ERROR -- COMPLETE
 
-save game
-load game
+save game -- COMPLETE
+load game -- COMPLETE
 
 upgrade
 different enemies -- COMPLETE
