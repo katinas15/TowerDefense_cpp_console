@@ -816,8 +816,8 @@ void variableText::showVariable(bool a) { show = a; }
 void variableText::setSide(bool pos) { position = pos; }
 void variableText::create() { //if position == true isveda pirmiau teksta
 	remove();
-	lib::setColor(color);
 	lib::setCursorPosition(coord.X, coord.Y);
+	lib::setColor(color);
 	if (show == false) {
 		cout << message;
 	}
