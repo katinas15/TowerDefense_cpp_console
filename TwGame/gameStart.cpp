@@ -238,7 +238,7 @@ private:
 	bool desine = false;
 	bool vertikalu = false;
 	bool horizontalu = false;
-	int baseHealth = 1000;
+	int baseHealth = 100;
 	int health = baseHealth;
 	int color = 5;
 	int money = 100;
@@ -380,8 +380,6 @@ public:
 		return damage;
 	}
 };
-
-
 class tower {
 private:
 	int type = 1;
@@ -589,7 +587,6 @@ public:
 		roundFreezeTime = 1;
 	}
 };
-
 class mainGame {
 private:
 	vector<enemy*> enemyVector;
@@ -695,9 +692,9 @@ public:
 			if (checkPlacement()) {//tikrina ar toje vietoje gali buti padetas tower
 				tower * a = new tower;
 				COORD pos = lib::getMousePosition();
-
 				if (pos.X != 0 && pos.Y != 0) {
 					towerVector.push_back(a);
+					towerVector[towerVector.size() - 1]->setXY(pos.X,pos.Y);
 					towerVector[towerVector.size() - 1]->placeTower();
 				}
 			}
@@ -709,9 +706,9 @@ public:
 			if (checkPlacement()) {//tikrina ar toje vietoje gali buti padetas tower
 				closeRange * a = new closeRange;
 				COORD pos = lib::getMousePosition();
-				
 				if (pos.X != 0 && pos.Y != 0) {
 					towerVector.push_back(a);
+					towerVector[towerVector.size() - 1]->setXY(pos.X, pos.Y);
 					towerVector[towerVector.size() - 1]->placeTower();
 				}
 			}
@@ -989,7 +986,7 @@ public:
 		lib::printText(20, 20, "Loading... ", messageColor);	//message
 		Sleep(20);
 		string file = filename.substr(0, filename.length() - 5);
-		ifstream df(filename);
+		ifstream df(file + ".map");
 		for (int i = 0; i < 33; i++) {
 			for (int j = 0; j < 50; j++) {
 				df >> laukas[j][i];
@@ -1004,7 +1001,7 @@ public:
 			}
 		}
 
-		ifstream dff(file + ".game");
+		ifstream dff(filename);
 		drawCurrentSession();
 		reset();
 		dff >> playerHealth;
