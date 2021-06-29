@@ -1200,7 +1200,9 @@ public:
 		ifstream df(filename);
 		for (int i = 0; i < 33; i++) {
 			for (int j = 0; j < 50; j++) {
-				df >> laukas[j][i];
+				int temp = -1;
+				df >> temp;
+				laukas[j][i] = temp;
 				if (laukas[j][i] == 2) {
 					baseX = j;
 					baseY = i;

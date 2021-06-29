@@ -203,7 +203,7 @@ namespace lib {
 		vector<string> names;
 		ofstream fr("temp.txt");	//nuskaitomi visi failu pavadinimai direktorijoje
 		for (const auto & p : std::filesystem::directory_iterator(path)) {
-			fr << p.path() << endl;
+			fr << p.path().string() << endl;
 		}
 		fr.close();
 		ifstream fd("temp.txt");
@@ -219,7 +219,7 @@ namespace lib {
 		for (int i = 0; i < names.size(); i++) {	//paliekami tik filetype nurodyti failai
 			string temp;
 			if (names[i].length() > fileType.length()) {
-				temp = names[i].substr(names[i].length() - fileType.length() - 1, fileType.length());
+				temp = names[i].substr(names[i].length() - fileType.length(), fileType.length());
 			}
 
 			if (temp != fileType || names[i].length() < fileType.length()) {
