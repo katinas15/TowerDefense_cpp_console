@@ -785,7 +785,7 @@ public:
 		}
 	}
 	void start() { //pagrindine zaidimo funkcija
-		lib::setFontSize(16, 16);
+		lib::setFontSize(14, 14);
 		lib::setConsoleResolution(1350, 800);
 		lib::clearscreen(backgroundColor);
 		lib::remove_scrollbar();
@@ -1221,8 +1221,8 @@ public:
 		drawCurrentSession();
 	}
 	void start() { //pagrindine funkcija
-		lib::setFontSize(20, 20);
-		lib::setConsoleResolution(1280, 720);
+		lib::setFontSize(16, 16);
+		lib::setConsoleResolution(1100, 700);
 		lib::clearscreen(15 * 16);
 		lib::remove_scrollbar();
 		lib::setCursorVisibility(false);
