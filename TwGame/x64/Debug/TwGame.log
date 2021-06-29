@@ -1,15 +1,1 @@
-﻿  gameStart.cpp
-C:\Users\laimo\Documents\GitHub\tower_defense_game\TwGame\gameStart.cpp(752,92): warning C4244: 'argument': conversion from '_Rep' to 'double', possible loss of data
-          with
-          [
-              _Rep=__int64
-          ]
-C:\Users\laimo\Documents\GitHub\tower_defense_game\TwGame\gameStart.cpp(875,1): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\laimo\Documents\GitHub\tower_defense_game\TwGame\gameStart.cpp(883,1): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\laimo\Documents\GitHub\tower_defense_game\TwGame\gameStart.cpp(893,1): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\laimo\Documents\GitHub\tower_defense_game\TwGame\gameStart.cpp(951,1): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\laimo\Documents\GitHub\tower_defense_game\TwGame\gameStart.cpp(1135,1): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\laimo\Documents\GitHub\tower_defense_game\TwGame\gameStart.cpp(1143,1): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\laimo\Documents\GitHub\tower_defense_game\TwGame\gameStart.cpp(1153,1): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\laimo\Documents\GitHub\tower_defense_game\TwGame\gameStart.cpp(1176,1): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-  TwGame.vcxproj -> C:\Users\laimo\Documents\GitHub\tower_defense_game\x64\Debug\TwGame.exe
+﻿  TwGame.vcxproj -> C:\Users\laimo\Documents\GitHub\tower_defense_game\x64\Debug\TwGame.exe
