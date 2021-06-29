@@ -1,4 +1,5 @@
 #include "Library.h"
+
 using namespace std;
 
 namespace lib {
@@ -201,8 +202,8 @@ namespace lib {
 		string path = folder;
 		vector<string> names;
 		ofstream fr("temp.txt");	//nuskaitomi visi failu pavadinimai direktorijoje
-		for (const auto & p : experimental::filesystem::directory_iterator(path)) {
-			fr << p << endl;
+		for (const auto & p : std::filesystem::directory_iterator(path)) {
+			fr << p.path() << endl;
 		}
 		fr.close();
 		ifstream fd("temp.txt");

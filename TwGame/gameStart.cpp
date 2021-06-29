@@ -941,7 +941,7 @@ public:
 
 	}
 	void loadGame() {
-		auto path = std::experimental::filesystem::current_path();//nustatoma dabartine direktorija .game failu radimui
+		auto path = std::filesystem::current_path();//nustatoma dabartine direktorija .game failu radimui
 		vector<string> files = lib::fileTypeInFolder(path.string(), "game");	//randami visi game failai
 		menu mapFiles;	//sukuriamas meniu kad butu galima pasirinkti mapa
 		mapFiles.setXY(15, 10);
@@ -1166,7 +1166,7 @@ public:
 		drawCurrentSession();
 	}
 	void loadMap() {
-		auto path = std::experimental::filesystem::current_path();//nustatoma dabartine direktorija .map failu radimui
+		auto path = std::filesystem::current_path();//nustatoma dabartine direktorija .map failu radimui
 		vector<string> files = lib::fileTypeInFolder(path.string(), "map");	//randami visi map failai
 		menu mapFiles;	//sukuriamas meniu kad butu galima pasirinkti mapa
 		mapFiles.setXY(15, 10);
